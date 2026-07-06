@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speed Dial Sync</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+
+  <div id="login-screen" class="screen hidden">
+    <form id="login-form">
+      <h1>Speed Dial Sync</h1>
+      <input type="email" id="login-email" placeholder="メールアドレス" required>
+      <input type="password" id="login-password" placeholder="パスワード" required>
+      <button type="submit">ログイン</button>
+      <p id="login-error" class="error"></p>
+    </form>
+  </div>
+
+  <div id="app-screen" class="screen hidden">
+    <div id="top-bar">
+      <div id="group-tabs"></div>
+      <button id="logout-btn">ログアウト</button>
+    </div>
+    <div id="link-grid"></div>
+  </div>
+
+  <div id="link-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="link-modal-title">リンクを追加</h2>
+      <input type="text" id="link-title-input" placeholder="タイトル">
+      <input type="text" id="link-url-input" placeholder="https://...">
+      <select id="link-group-select"></select>
+      <div class="modal-actions">
+        <button id="link-delete-btn" class="hidden">削除</button>
+        <button id="link-cancel-btn">キャンセル</button>
+        <button id="link-save-btn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="shared/app.js"></script>
+</body>
+</html>

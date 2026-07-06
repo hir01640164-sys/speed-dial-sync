@@ -1,0 +1,201 @@
+:root {
+  --page-bg: #ffffff;
+  --bg: #1a1a1a;
+  --bg-elevated: #4a4a4a;
+  --card-bg: #f5f5f5;
+  --card-hover: #e8e8e8;
+  --card-border: #e0e0e0;
+  --card-text: #1a1a1a;
+  --text: #eee;
+  --text-dim: #999;
+  --accent: #4d8cff;
+  --danger: #e05555;
+  --border: #3a3a3a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: -apple-system, "Segoe UI", "Hiragino Sans", sans-serif;
+}
+
+.hidden { display: none !important; }
+
+/* ログイン画面 */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#login-form {
+  background: var(--bg-elevated);
+  padding: 32px;
+  border-radius: 12px;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#login-form h1 { font-size: 18px; text-align: center; margin: 0 0 8px; }
+#login-form input {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+#login-form button {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.error { color: var(--danger); font-size: 12px; min-height: 16px; margin: 0; }
+
+/* トップバー・グループタブ */
+#top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+}
+#group-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--bg-elevated);
+  color: var(--text-dim);
+  cursor: pointer;
+  border: 1px solid transparent;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tab.active { color: #fff; border-color: var(--accent); }
+.tab.drag-over { border-color: var(--accent); }
+.tab .tab-close { opacity: 0; font-size: 12px; }
+.tab:hover .tab-close { opacity: 1; }
+.tab-add {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px dashed var(--border);
+  cursor: pointer;
+}
+#logout-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* カードグリッド */
+#link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  padding: 24px;
+}
+.card {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  position: relative;
+  border: 1px solid var(--card-border);
+  color: var(--card-text);
+}
+.card:hover { background: var(--card-hover); }
+.card.drag-over { border-color: var(--accent); }
+.card .favicon { width: 32px; height: 32px; border-radius: 6px; background: #fff; }
+.card .card-title {
+  font-size: 13px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  color: var(--card-text);
+}
+.card .edit-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0,0,0,0.4);
+  border: none;
+  color: #fff;
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  opacity: 0;
+  cursor: pointer;
+}
+.card:hover .edit-btn { opacity: 1; }
+.card-add {
+  border: 1px dashed var(--card-border);
+  color: var(--text-dim);
+  font-size: 28px;
+  background: transparent;
+}
+.card-add:hover { background: var(--card-hover); }
+
+/* モーダル */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: var(--bg-elevated);
+  padding: 24px;
+  border-radius: 10px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.modal-content h2 { margin: 0 0 4px; font-size: 16px; }
+.modal-content input, .modal-content select {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.modal-actions button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+}
+#link-save-btn { background: var(--accent); color: #fff; }
+#link-cancel-btn { background: var(--border); color: var(--text); }
+#link-delete-btn { background: var(--danger); color: #fff; margin-right: auto; }
