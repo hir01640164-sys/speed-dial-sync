@@ -11,7 +11,7 @@
   --accent: #4d8cff;
   --danger: #e05555;
   --border: #3a3a3a;
-  --card-size: 140px;
+  --grid-columns: 6;
 }
 
 * { box-sizing: border-box; }
@@ -132,7 +132,7 @@ body.has-bg-image {
 /* カードグリッド */
 #link-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--card-size), 1fr));
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
   gap: 16px;
   padding: 24px;
 }
@@ -151,7 +151,7 @@ body.has-bg-image {
 }
 .card:hover { background: var(--card-hover); }
 .card.drag-over { border-color: var(--accent); }
-.card .favicon { width: calc(var(--card-size) * 0.22); height: calc(var(--card-size) * 0.22); border-radius: 6px; background: #fff; }
+.card .favicon { width: 26%; aspect-ratio: 1 / 1; border-radius: 6px; background: #fff; }
 .card .card-title {
   font-size: 13px;
   text-align: center;

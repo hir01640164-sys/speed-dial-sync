@@ -25,9 +25,10 @@ const linkDeleteBtn = document.getElementById('link-delete-btn');
 
 const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
-const cardSizeInput = document.getElementById('card-size-input');
-const cardSizeValue = document.getElementById('card-size-value');
 const columnsInput = document.getElementById('columns-input');
+const columnsValue = document.getElementById('columns-value');
+const marginXInput = document.getElementById('margin-x-input');
+const marginXValue = document.getElementById('margin-x-value');
 const bgImageInput = document.getElementById('bg-image-input');
 const settingsSaveBtn = document.getElementById('settings-save-btn');
 const settingsCancelBtn = document.getElementById('settings-cancel-btn');
@@ -303,7 +304,7 @@ linkDeleteBtn.addEventListener('click', () => {
 /* ---------- 表示設定(端末ごとにlocalStorageへ保存) ---------- */
 
 const SETTINGS_KEY = 'speedDialSettings';
-const DEFAULT_SETTINGS = { cardSize: 140, columns: 0, bgImage: '' };
+const DEFAULT_SETTINGS = { columns: 6, marginX: 24, bgImage: '' };
 
 function loadSettings() {
   try {
@@ -316,8 +317,9 @@ function loadSettings() {
 let settings = loadSettings();
 
 function applySettings(s) {
-  document.documentElement.style.setProperty('--card-size', s.cardSize + 'px');
-  linkGridEl.style.gridTemplateColumns = s.columns > 0 ? `repeat(${s.columns}, 1fr)` : '';
+  document.documentElement.style.setProperty('--grid-columns', s.columns);
+  linkGridEl.style.paddingLeft = s.marginX + 'px';
+  linkGridEl.style.paddingRight = s.marginX + 'px';
   if (s.bgImage) {
     document.body.style.backgroundImage = `url("${s.bgImage}")`;
     document.body.classList.add('has-bg-image');
@@ -331,16 +333,17 @@ applySettings(settings);
 
 function readDraftSettings() {
   return {
-    cardSize: Number(cardSizeInput.value),
     columns: Number(columnsInput.value),
+    marginX: Number(marginXInput.value),
     bgImage: bgImageInput.value.trim(),
   };
 }
 
 function fillSettingsInputs(s) {
-  cardSizeInput.value = s.cardSize;
-  cardSizeValue.textContent = s.cardSize + 'px';
   columnsInput.value = s.columns;
+  columnsValue.textContent = s.columns + '列';
+  marginXInput.value = s.marginX;
+  marginXValue.textContent = s.marginX + 'px';
   bgImageInput.value = s.bgImage;
 }
 
@@ -349,9 +352,10 @@ settingsBtn.addEventListener('click', () => {
   settingsModal.classList.remove('hidden');
 });
 
-[cardSizeInput, columnsInput, bgImageInput].forEach((el) => {
+[columnsInput, marginXInput, bgImageInput].forEach((el) => {
   el.addEventListener('input', () => {
-    cardSizeValue.textContent = cardSizeInput.value + 'px';
+    columnsValue.textContent = columnsInput.value + '列';
+    marginXValue.textContent = marginXInput.value + 'px';
     applySettings(readDraftSettings());
   });
 });
