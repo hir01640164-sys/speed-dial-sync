@@ -13,6 +13,8 @@ const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
 const groupTabsEl = document.getElementById('group-tabs');
 const linkGridEl = document.getElementById('link-grid');
+const pagePrevBtn = document.getElementById('page-prev-btn');
+const pageNextBtn = document.getElementById('page-next-btn');
 
 const linkModal = document.getElementById('link-modal');
 const linkModalTitle = document.getElementById('link-modal-title');
@@ -48,6 +50,7 @@ let activeGroupId = null;
 let editingLinkId = null;
 let draggedLinkId = null;
 let draggedGroupId = null;
+let currentPage = 0;
 
 setupAuth((user) => {
   if (user) {
@@ -120,6 +123,7 @@ function renderTabs() {
 
     tab.addEventListener('click', () => {
       activeGroupId = id;
+      currentPage = 0;
       renderTabs();
       renderGrid();
     });
@@ -182,56 +186,115 @@ function reorderGroups(draggedId, targetId) {
   update(ref(db), updates);
 }
 
-/* ---------- グリッド(カード)描画 ---------- */
+/* ---------- グリッド(カード)描画・ページ送り ---------- */
 
-function renderGrid() {
-  linkGridEl.innerHTML = '';
-  linksInActiveGroup().forEach((id) => {
-    const link = links[id];
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.draggable = true;
-    card.dataset.id = id;
+function buildCard(id) {
+  const link = links[id];
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.draggable = true;
+  card.dataset.id = id;
 
-    const img = document.createElement('img');
-    img.className = 'favicon';
-    img.src = link.icon || faviconUrl(link.url);
-    card.appendChild(img);
+  const img = document.createElement('img');
+  img.className = 'favicon';
+  img.src = link.icon || faviconUrl(link.url);
+  card.appendChild(img);
 
-    const title = document.createElement('div');
-    title.className = 'card-title';
-    title.textContent = link.title;
-    card.appendChild(title);
+  const title = document.createElement('div');
+  title.className = 'card-title';
+  title.textContent = link.title;
+  card.appendChild(title);
 
-    const editBtn = document.createElement('button');
-    editBtn.className = 'edit-btn';
-    editBtn.textContent = '✎';
-    editBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openLinkModal(id);
-    });
-    card.appendChild(editBtn);
+  const editBtn = document.createElement('button');
+  editBtn.className = 'edit-btn';
+  editBtn.textContent = '✎';
+  editBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openLinkModal(id);
+  });
+  card.appendChild(editBtn);
 
-    card.addEventListener('click', () => window.open(link.url, '_blank'));
+  card.addEventListener('click', () => window.open(link.url, '_blank'));
 
-    card.addEventListener('dragstart', () => { draggedLinkId = id; });
-    card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over'); });
-    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
-    card.addEventListener('drop', (e) => {
-      e.preventDefault();
-      card.classList.remove('drag-over');
-      reorderLinks(draggedLinkId, id);
-    });
-
-    linkGridEl.appendChild(card);
+  card.addEventListener('dragstart', () => { draggedLinkId = id; });
+  card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over'); });
+  card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+  card.addEventListener('drop', (e) => {
+    e.preventDefault();
+    card.classList.remove('drag-over');
+    reorderLinks(draggedLinkId, id);
   });
 
-  const addCard = document.createElement('button');
-  addCard.className = 'card card-add';
-  addCard.textContent = '+';
-  addCard.addEventListener('click', () => openLinkModal(null));
-  linkGridEl.appendChild(addCard);
+  return card;
 }
+
+function renderCards(ids, showAddCard) {
+  linkGridEl.innerHTML = '';
+  ids.forEach((id) => linkGridEl.appendChild(buildCard(id)));
+  if (showAddCard) {
+    const addCard = document.createElement('button');
+    addCard.className = 'card card-add';
+    addCard.textContent = '+';
+    addCard.addEventListener('click', () => openLinkModal(null));
+    linkGridEl.appendChild(addCard);
+  }
+}
+
+function computeItemsPerPage() {
+  const firstCard = linkGridEl.querySelector('.card:not(.card-add)');
+  if (!firstCard) return Infinity;
+  const cardHeight = firstCard.getBoundingClientRect().height;
+  if (!cardHeight) return Infinity;
+  const columns = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-columns'), 10) || 1;
+  const marginBottom = parseFloat(linkGridEl.style.paddingBottom) || 0;
+  const gap = 16;
+  const availableHeight = window.innerHeight - linkGridEl.getBoundingClientRect().top - marginBottom;
+  const rows = Math.max(1, Math.floor((availableHeight + gap) / (cardHeight + gap)));
+  return rows * columns;
+}
+
+function updatePageNav(totalPages) {
+  if (totalPages <= 1) {
+    pagePrevBtn.classList.add('hidden');
+    pageNextBtn.classList.add('hidden');
+    return;
+  }
+  pagePrevBtn.classList.toggle('hidden', currentPage === 0);
+  pageNextBtn.classList.toggle('hidden', currentPage === totalPages - 1);
+}
+
+function renderGrid() {
+  const allIds = linksInActiveGroup();
+  renderCards(allIds, true);
+
+  const perPage = computeItemsPerPage();
+  if (isFinite(perPage) && allIds.length > perPage) {
+    const totalPages = Math.max(1, Math.ceil(allIds.length / perPage));
+    if (currentPage > totalPages - 1) currentPage = totalPages - 1;
+    if (currentPage < 0) currentPage = 0;
+    const start = currentPage * perPage;
+    const pageIds = allIds.slice(start, start + perPage);
+    renderCards(pageIds, currentPage === totalPages - 1);
+    updatePageNav(totalPages);
+  } else {
+    currentPage = 0;
+    updatePageNav(1);
+  }
+}
+
+pagePrevBtn.addEventListener('click', () => {
+  if (currentPage > 0) {
+    currentPage--;
+    renderGrid();
+  }
+});
+
+pageNextBtn.addEventListener('click', () => {
+  currentPage++;
+  renderGrid();
+});
+
+window.addEventListener('resize', () => renderGrid());
 
 function reorderLinks(draggedId, targetId) {
   if (!draggedId || draggedId === targetId) return;
@@ -453,12 +516,14 @@ settingsBtn.addEventListener('click', () => {
     marginYValue.textContent = marginYInput.value + 'px';
     iconScaleValue.textContent = iconScaleInput.value + '%';
     applySettings(readDraftSettings());
+    renderGrid();
   });
 });
 
 settingsCancelBtn.addEventListener('click', () => {
   applySettings(settings);
   settingsModal.classList.add('hidden');
+  renderGrid();
 });
 
 settingsSaveBtn.addEventListener('click', () => {
@@ -466,6 +531,7 @@ settingsSaveBtn.addEventListener('click', () => {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   applySettings(settings);
   settingsModal.classList.add('hidden');
+  renderGrid();
 });
 
 settingsResetBtn.addEventListener('click', () => {
@@ -473,4 +539,5 @@ settingsResetBtn.addEventListener('click', () => {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   fillSettingsInputs(settings);
   applySettings(settings);
+  renderGrid();
 });

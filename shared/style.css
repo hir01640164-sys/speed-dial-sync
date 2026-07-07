@@ -136,7 +136,25 @@ body.has-bg-image {
   grid-template-columns: repeat(var(--grid-columns), 1fr);
   gap: 16px;
   padding: 24px;
+  overflow: hidden;
 }
+
+.page-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 64px;
+  border: none;
+  background: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 28px;
+  cursor: pointer;
+  z-index: 10;
+}
+.page-nav:hover { background: rgba(0, 0, 0, 0.3); color: rgba(0, 0, 0, 0.8); }
+.page-nav-left { left: 0; border-radius: 0 8px 8px 0; }
+.page-nav-right { right: 0; border-radius: 8px 0 0 8px; }
 .card {
   background: var(--card-bg);
   border-radius: 10px;
