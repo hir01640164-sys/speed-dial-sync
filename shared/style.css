@@ -87,17 +87,17 @@ body.has-bg-image {
 }
 .tab {
   position: relative;
-  padding: 6px 20px;
-  border-radius: 20px;
-  background: var(--bg-elevated);
+  padding: 6px 4px;
+  background: transparent;
   color: var(--text-dim);
   cursor: pointer;
-  border: 1px solid transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
   user-select: none;
   text-align: center;
 }
-.tab.active { color: #fff; border-color: var(--accent); }
-.tab.drag-over { border-color: var(--accent); }
+.tab.active { color: var(--card-text); border-bottom-color: var(--accent); }
+.tab.drag-over { border-bottom-color: var(--accent); }
 .tab .tab-close {
   position: absolute;
   top: -6px;
@@ -114,13 +114,13 @@ body.has-bg-image {
 }
 .tab:hover .tab-close { opacity: 1; }
 .tab-add {
-  padding: 6px 14px;
-  border-radius: 20px;
+  padding: 6px 4px;
   background: transparent;
   color: var(--text-dim);
-  border: 1px dashed var(--border);
+  border: none;
   cursor: pointer;
 }
+.tab-add:hover { color: var(--card-text); }
 #logout-btn, #settings-btn {
   background: transparent;
   border: 1px solid var(--border);
@@ -165,12 +165,12 @@ body.has-bg-image {
   gap: 10px;
   cursor: pointer;
   position: relative;
-  border: 1px solid var(--card-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   color: var(--card-text);
 }
-.card:hover { background: var(--card-hover); }
-.card.drag-over { border-color: var(--accent); }
-.card .favicon { width: var(--icon-scale); aspect-ratio: 1 / 1; border-radius: 6px; background: #fff; }
+.card:hover { background: var(--card-hover); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
+.card.drag-over { box-shadow: 0 0 0 2px var(--accent); }
+.card .favicon { width: var(--icon-scale); aspect-ratio: 1 / 1; border-radius: 6px; background: transparent; }
 .card .card-title {
   font-size: 13px;
   text-align: center;
@@ -179,6 +179,8 @@ body.has-bg-image {
   white-space: nowrap;
   width: 100%;
   color: var(--card-text);
+  padding-top: 8px;
+  border-top: 1px solid var(--card-border);
 }
 .card .edit-btn {
   position: absolute;
