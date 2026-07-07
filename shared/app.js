@@ -533,13 +533,25 @@ linkDeleteBtn.addEventListener('click', () => {
 /* ---------- 表示設定(端末ごとにlocalStorageへ保存) ---------- */
 
 const SETTINGS_KEY = 'speedDialSettings';
-const DEFAULT_SETTINGS = { themeColor: '#4d8cff', iconStyle: 'light', homeIconColor: '#4d8cff', columns: 6, marginX: 24, marginY: 24, iconScale: 26, topbarOpacity: 85, cardOpacity: 92, bgImage: '' };
+const DEFAULT_SETTINGS = { themeColor: '#4d8cff', iconStyle: 'light', homeIconColor: '#4d8cff', marginX: 24, marginY: 24, iconScale: 26, topbarOpacity: 85, cardOpacity: 92, bgImage: '' };
+
+function defaultColumnsForViewport() {
+  const w = window.innerWidth;
+  if (w < 600) return 3;
+  if (w < 1000) return 5;
+  return 7;
+}
+
+function getDefaultSettings() {
+  return { ...DEFAULT_SETTINGS, columns: defaultColumnsForViewport() };
+}
 
 function loadSettings() {
   try {
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) };
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+    return { ...getDefaultSettings(), ...saved };
   } catch {
-    return { ...DEFAULT_SETTINGS };
+    return getDefaultSettings();
   }
 }
 
@@ -747,7 +759,7 @@ settingsSaveBtn.addEventListener('click', () => {
 });
 
 settingsResetBtn.addEventListener('click', () => {
-  settings = { ...DEFAULT_SETTINGS };
+  settings = getDefaultSettings();
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   fillSettingsInputs(settings);
   applySettings(settings);
