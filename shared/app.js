@@ -35,6 +35,7 @@ const linkIconPresetGrid = document.getElementById('link-icon-preset-grid');
 
 const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
+const themeColorInput = document.getElementById('theme-color-input');
 const columnsInput = document.getElementById('columns-input');
 const columnsValue = document.getElementById('columns-value');
 const marginXInput = document.getElementById('margin-x-input');
@@ -542,7 +543,7 @@ linkDeleteBtn.addEventListener('click', () => {
 /* ---------- 表示設定(端末ごとにlocalStorageへ保存) ---------- */
 
 const SETTINGS_KEY = 'speedDialSettings';
-const DEFAULT_SETTINGS = { columns: 6, marginX: 24, marginY: 24, iconScale: 26, topbarOpacity: 85, cardOpacity: 92, bgImage: '' };
+const DEFAULT_SETTINGS = { themeColor: '#4d8cff', columns: 6, marginX: 24, marginY: 24, iconScale: 26, topbarOpacity: 85, cardOpacity: 92, bgImage: '' };
 
 function loadSettings() {
   try {
@@ -580,7 +581,29 @@ function updateBgPreview() {
   bgImagePreview.style.visibility = draftBgImage ? 'visible' : 'hidden';
 }
 
+function hexToRgb(hex) {
+  const clean = hex.replace('#', '');
+  const bytes = clean.match(/.{1,2}/g).map((h) => parseInt(h, 16));
+  return bytes;
+}
+
+function mixTowardRgb(rgb, target, amount) {
+  return rgb.map((c, i) => Math.round(c * (1 - amount) + target[i] * amount));
+}
+
+function applyThemeColor(hex) {
+  const rgb = hexToRgb(hex);
+  const textRgb = mixTowardRgb(rgb, [0, 0, 0], 0.3);
+  const cardBgRgb = mixTowardRgb(rgb, [255, 255, 255], 0.9);
+  const panelBgRgb = mixTowardRgb(rgb, [0, 0, 0], 0.5);
+  document.documentElement.style.setProperty('--theme-color', hex);
+  document.documentElement.style.setProperty('--theme-text-rgb', textRgb.join(' '));
+  document.documentElement.style.setProperty('--card-bg-rgb', cardBgRgb.join(' '));
+  document.documentElement.style.setProperty('--panel-bg-rgb', panelBgRgb.join(' '));
+}
+
 function applySettings(s) {
+  applyThemeColor(s.themeColor);
   document.documentElement.style.setProperty('--grid-columns', s.columns);
   document.documentElement.style.setProperty('--icon-scale', s.iconScale + '%');
   document.documentElement.style.setProperty('--topbar-opacity', s.topbarOpacity / 100);
@@ -602,6 +625,7 @@ applySettings(settings);
 
 function readDraftSettings() {
   return {
+    themeColor: themeColorInput.value,
     columns: Number(columnsInput.value),
     marginX: Number(marginXInput.value),
     marginY: Number(marginYInput.value),
@@ -613,6 +637,7 @@ function readDraftSettings() {
 }
 
 function fillSettingsInputs(s) {
+  themeColorInput.value = s.themeColor;
   columnsInput.value = s.columns;
   columnsValue.textContent = s.columns + '列';
   marginXInput.value = s.marginX;
@@ -636,7 +661,7 @@ settingsBtn.addEventListener('click', () => {
   settingsModal.classList.remove('hidden');
 });
 
-[columnsInput, marginXInput, marginYInput, iconScaleInput, topbarOpacityInput, cardOpacityInput].forEach((el) => {
+[themeColorInput, columnsInput, marginXInput, marginYInput, iconScaleInput, topbarOpacityInput, cardOpacityInput].forEach((el) => {
   el.addEventListener('input', () => {
     columnsValue.textContent = columnsInput.value + '列';
     marginXValue.textContent = marginXInput.value + 'px';
