@@ -122,16 +122,25 @@ body.has-bg-image {
   color: var(--text-dim);
   border: none;
   cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
 }
+#group-tabs:hover .tab-add { opacity: 1; }
 .tab-add:hover { color: var(--card-text); }
 #logout-btn, #settings-btn {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-dim);
-  padding: 6px 12px;
-  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+#logout-btn:hover, #settings-btn:hover { color: var(--card-text); border-color: var(--card-text); }
 
 /* カードグリッド */
 #link-grid {
@@ -182,8 +191,6 @@ body.has-bg-image {
   white-space: nowrap;
   width: 100%;
   color: var(--card-text);
-  padding-top: 8px;
-  border-top: 1px solid var(--card-border);
 }
 .card .edit-btn {
   position: absolute;
