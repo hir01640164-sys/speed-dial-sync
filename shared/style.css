@@ -101,21 +101,6 @@ body.has-bg-image {
 }
 .tab.active { color: var(--card-text); border-bottom-color: var(--accent); }
 .tab.drag-over { border-bottom-color: var(--accent); }
-.tab .tab-close {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--danger);
-  color: #fff;
-  font-size: 11px;
-  line-height: 16px;
-  text-align: center;
-  opacity: 0;
-}
-.tab:hover .tab-close { opacity: 1; }
 .tab-add {
   padding: 6px 4px;
   background: transparent;
@@ -213,6 +198,30 @@ body.has-bg-image {
   background: transparent;
 }
 .card-add:hover { background: rgba(232, 232, 232, var(--card-opacity)); }
+
+/* タブの右クリック的メニュー(リネーム/削除) */
+.context-menu {
+  position: fixed;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+}
+.context-menu button {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.context-menu button:hover { background: rgba(255, 255, 255, 0.1); }
+#tab-delete-btn { color: var(--danger); }
 
 /* モーダル */
 .modal {

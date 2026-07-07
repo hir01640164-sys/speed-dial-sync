@@ -15,6 +15,9 @@ const groupTabsEl = document.getElementById('group-tabs');
 const linkGridEl = document.getElementById('link-grid');
 const pagePrevBtn = document.getElementById('page-prev-btn');
 const pageNextBtn = document.getElementById('page-next-btn');
+const tabContextMenu = document.getElementById('tab-context-menu');
+const tabRenameBtn = document.getElementById('tab-rename-btn');
+const tabDeleteBtn = document.getElementById('tab-delete-btn');
 
 const linkModal = document.getElementById('link-modal');
 const linkModalTitle = document.getElementById('link-modal-title');
@@ -59,6 +62,7 @@ let editingLinkId = null;
 let draggedLinkId = null;
 let draggedGroupId = null;
 let currentPage = 0;
+let contextMenuGroupId = null;
 
 setupAuth((user) => {
   if (user) {
@@ -120,22 +124,16 @@ function renderTabs() {
     label.textContent = groups[id].name;
     tab.appendChild(label);
 
-    const closeBtn = document.createElement('span');
-    closeBtn.className = 'tab-close';
-    closeBtn.textContent = '×';
-    closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      deleteGroup(id);
-    });
-    tab.appendChild(closeBtn);
-
     tab.addEventListener('click', () => {
       activeGroupId = id;
       currentPage = 0;
       renderTabs();
       renderGrid();
     });
-    tab.addEventListener('dblclick', () => renameGroup(id));
+    tab.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      openTabContextMenu(id, tab);
+    });
 
     tab.addEventListener('dragstart', () => { draggedGroupId = id; });
     tab.addEventListener('dragover', (e) => { e.preventDefault(); tab.classList.add('drag-over'); });
@@ -181,6 +179,35 @@ function deleteGroup(id) {
   });
   if (activeGroupId === id) activeGroupId = null;
 }
+
+function openTabContextMenu(id, tabEl) {
+  contextMenuGroupId = id;
+  const rect = tabEl.getBoundingClientRect();
+  tabContextMenu.style.left = rect.left + 'px';
+  tabContextMenu.style.top = rect.bottom + 4 + 'px';
+  tabContextMenu.classList.remove('hidden');
+}
+
+function closeTabContextMenu() {
+  tabContextMenu.classList.add('hidden');
+  contextMenuGroupId = null;
+}
+
+tabRenameBtn.addEventListener('click', () => {
+  if (contextMenuGroupId) renameGroup(contextMenuGroupId);
+  closeTabContextMenu();
+});
+
+tabDeleteBtn.addEventListener('click', () => {
+  if (contextMenuGroupId) deleteGroup(contextMenuGroupId);
+  closeTabContextMenu();
+});
+
+document.addEventListener('click', (e) => {
+  if (!tabContextMenu.classList.contains('hidden') && !tabContextMenu.contains(e.target) && !e.target.closest('.tab')) {
+    closeTabContextMenu();
+  }
+});
 
 function reorderGroups(draggedId, targetId) {
   if (!draggedId || draggedId === targetId) return;
