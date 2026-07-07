@@ -362,17 +362,24 @@ function goToPrevPage() {
 pagePrevBtn.addEventListener('click', goToPrevPage);
 pageNextBtn.addEventListener('click', goToNextPage);
 
-let touchStartX = 0;
-let touchStartY = 0;
+let touchStartX = null;
+let touchStartY = null;
 
-linkGridEl.addEventListener('touchstart', (e) => {
+document.body.addEventListener('touchstart', (e) => {
+  if (appScreen.classList.contains('hidden')) { touchStartX = null; return; }
+  if (e.target.closest('#top-bar') || e.target.closest('.modal') || e.target.closest('.page-nav')) {
+    touchStartX = null;
+    return;
+  }
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
 }, { passive: true });
 
-linkGridEl.addEventListener('touchend', (e) => {
+document.body.addEventListener('touchend', (e) => {
+  if (touchStartX === null) return;
   const dx = e.changedTouches[0].clientX - touchStartX;
   const dy = e.changedTouches[0].clientY - touchStartY;
+  touchStartX = null;
   if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
     if (dx > 0) goToNextPage();
     else goToPrevPage();
