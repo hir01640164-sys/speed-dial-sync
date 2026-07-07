@@ -33,6 +33,8 @@ const columnsInput = document.getElementById('columns-input');
 const columnsValue = document.getElementById('columns-value');
 const marginXInput = document.getElementById('margin-x-input');
 const marginXValue = document.getElementById('margin-x-value');
+const marginYInput = document.getElementById('margin-y-input');
+const marginYValue = document.getElementById('margin-y-value');
 const iconScaleInput = document.getElementById('icon-scale-input');
 const iconScaleValue = document.getElementById('icon-scale-value');
 const bgImageInput = document.getElementById('bg-image-input');
@@ -387,7 +389,7 @@ linkDeleteBtn.addEventListener('click', () => {
 /* ---------- 表示設定(端末ごとにlocalStorageへ保存) ---------- */
 
 const SETTINGS_KEY = 'speedDialSettings';
-const DEFAULT_SETTINGS = { columns: 6, marginX: 24, iconScale: 26, bgImage: '' };
+const DEFAULT_SETTINGS = { columns: 6, marginX: 24, marginY: 24, iconScale: 26, bgImage: '' };
 
 function loadSettings() {
   try {
@@ -404,6 +406,8 @@ function applySettings(s) {
   document.documentElement.style.setProperty('--icon-scale', s.iconScale + '%');
   linkGridEl.style.paddingLeft = s.marginX + 'px';
   linkGridEl.style.paddingRight = s.marginX + 'px';
+  linkGridEl.style.paddingTop = s.marginY + 'px';
+  linkGridEl.style.paddingBottom = s.marginY + 'px';
   if (s.bgImage) {
     document.body.style.backgroundImage = `url("${s.bgImage}")`;
     document.body.classList.add('has-bg-image');
@@ -419,6 +423,7 @@ function readDraftSettings() {
   return {
     columns: Number(columnsInput.value),
     marginX: Number(marginXInput.value),
+    marginY: Number(marginYInput.value),
     iconScale: Number(iconScaleInput.value),
     bgImage: bgImageInput.value.trim(),
   };
@@ -429,6 +434,8 @@ function fillSettingsInputs(s) {
   columnsValue.textContent = s.columns + '列';
   marginXInput.value = s.marginX;
   marginXValue.textContent = s.marginX + 'px';
+  marginYInput.value = s.marginY;
+  marginYValue.textContent = s.marginY + 'px';
   iconScaleInput.value = s.iconScale;
   iconScaleValue.textContent = s.iconScale + '%';
   bgImageInput.value = s.bgImage;
@@ -439,10 +446,11 @@ settingsBtn.addEventListener('click', () => {
   settingsModal.classList.remove('hidden');
 });
 
-[columnsInput, marginXInput, iconScaleInput, bgImageInput].forEach((el) => {
+[columnsInput, marginXInput, marginYInput, iconScaleInput, bgImageInput].forEach((el) => {
   el.addEventListener('input', () => {
     columnsValue.textContent = columnsInput.value + '列';
     marginXValue.textContent = marginXInput.value + 'px';
+    marginYValue.textContent = marginYInput.value + 'px';
     iconScaleValue.textContent = iconScaleInput.value + '%';
     applySettings(readDraftSettings());
   });
