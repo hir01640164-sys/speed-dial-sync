@@ -258,6 +258,8 @@ body.has-bg-image {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  max-height: 160px;
+  overflow-y: auto;
 }
 .icon-preset-btn {
   width: 36px;

@@ -349,25 +349,36 @@ function reorderLinks(draggedId, targetId) {
 
 let pendingIcon = '';
 
-const PRESET_ICONS = [
-  { emoji: '🌐', bg: '#4d8cff' },
-  { emoji: '⭐', bg: '#f5a623' },
-  { emoji: '❤️', bg: '#e05555' },
-  { emoji: '📁', bg: '#8a7cff' },
-  { emoji: '🔖', bg: '#3ec1a5' },
-  { emoji: '💼', bg: '#6b7280' },
-  { emoji: '🛒', bg: '#ff8a5c' },
-  { emoji: '✉️', bg: '#5c9eff' },
-  { emoji: '📄', bg: '#9ca3af' },
-  { emoji: '🔔', bg: '#f6c744' },
-  { emoji: '🎮', bg: '#a78bfa' },
-  { emoji: '💰', bg: '#34c759' },
-].map((p) => ({ ...p, url: buildPresetIconDataUrl(p.emoji, p.bg) }));
-
-function buildPresetIconDataUrl(emoji, bg) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><rect width="64" height="64" rx="14" fill="${bg}"/><text x="32" y="42" font-size="32" text-anchor="middle" font-family="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif">${emoji}</text></svg>`;
+function svgFrame(inner) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><rect x="4" y="4" width="56" height="56" rx="12" fill="none" stroke="#000" stroke-width="4"/>${inner}</svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
+
+function letterIconUrl(letter) {
+  return svgFrame(`<text x="32" y="44" font-size="30" font-weight="700" text-anchor="middle" font-family="Arial, sans-serif" fill="#000">${letter}</text>`);
+}
+
+const SYMBOL_ICON_DEFS = [
+  { key: 'globe', inner: '<circle cx="32" cy="32" r="16" fill="none" stroke="#000" stroke-width="3"/><line x1="16" y1="32" x2="48" y2="32" stroke="#000" stroke-width="3"/><ellipse cx="32" cy="32" rx="7" ry="16" fill="none" stroke="#000" stroke-width="3"/>' },
+  { key: 'star', inner: '<polygon points="32,16 35.8,26.7 47.2,27.1 38.2,34.0 41.4,44.9 32,38.5 22.6,44.9 25.8,34.0 16.8,27.1 28.2,26.7" fill="#000"/>' },
+  { key: 'heart', inner: '<path d="M32 46 C20 36 10 28 10 18 C10 10 16 6 22 6 C27 6 30 9 32 13 C34 9 37 6 42 6 C48 6 54 10 54 18 C54 28 44 36 32 46 Z" fill="#000"/>' },
+  { key: 'folder', inner: '<path d="M8 18 L24 18 L28 24 L56 24 L56 50 L8 50 Z" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/>' },
+  { key: 'bookmark', inner: '<path d="M18 6 H46 V58 L32 46 L18 58 Z" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/>' },
+  { key: 'briefcase', inner: '<rect x="8" y="22" width="48" height="32" rx="4" fill="none" stroke="#000" stroke-width="3"/><path d="M24 22 v-6 a4 4 0 0 1 4-4 h8 a4 4 0 0 1 4 4 v6" fill="none" stroke="#000" stroke-width="3"/>' },
+  { key: 'cart', inner: '<path d="M8 10 h6 l6 30 h30 l6 -22 h-40" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="24" cy="50" r="4" fill="#000"/><circle cx="44" cy="50" r="4" fill="#000"/>' },
+  { key: 'mail', inner: '<rect x="8" y="16" width="48" height="32" rx="4" fill="none" stroke="#000" stroke-width="3"/><path d="M8 18 L32 38 L56 18" fill="none" stroke="#000" stroke-width="3"/>' },
+  { key: 'document', inner: '<path d="M16 6 H40 L48 14 V58 H16 Z" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/><path d="M40 6 V14 H48" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/>' },
+  { key: 'bell', inner: '<path d="M32 8 C24 8 18 14 18 24 V34 L12 44 H52 L46 34 V24 C46 14 40 8 32 8 Z" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/><path d="M27 50 a5 5 0 0 0 10 0" fill="none" stroke="#000" stroke-width="3"/>' },
+  { key: 'game', inner: '<rect x="8" y="22" width="48" height="24" rx="12" fill="none" stroke="#000" stroke-width="3"/><line x1="20" y1="28" x2="20" y2="38" stroke="#000" stroke-width="3"/><line x1="15" y1="33" x2="25" y2="33" stroke="#000" stroke-width="3"/><circle cx="38" cy="30" r="2.5" fill="#000"/><circle cx="45" cy="37" r="2.5" fill="#000"/>' },
+  { key: 'money', inner: '<circle cx="32" cy="32" r="18" fill="none" stroke="#000" stroke-width="3"/><text x="32" y="41" font-size="22" font-weight="700" text-anchor="middle" font-family="Arial, sans-serif" fill="#000">¥</text>' },
+];
+
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+const PRESET_ICONS = [
+  ...SYMBOL_ICON_DEFS.map((d) => ({ key: d.key, url: svgFrame(d.inner) })),
+  ...ALPHABET.map((letter) => ({ key: letter, url: letterIconUrl(letter) })),
+];
 
 function isPresetIcon(icon) {
   return PRESET_ICONS.some((p) => p.url === icon);
