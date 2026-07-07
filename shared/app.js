@@ -22,6 +22,10 @@ const linkGroupSelect = document.getElementById('link-group-select');
 const linkSaveBtn = document.getElementById('link-save-btn');
 const linkCancelBtn = document.getElementById('link-cancel-btn');
 const linkDeleteBtn = document.getElementById('link-delete-btn');
+const linkIconPreview = document.getElementById('link-icon-preview');
+const linkIconModeSelect = document.getElementById('link-icon-mode-select');
+const linkIconUrlInput = document.getElementById('link-icon-url-input');
+const linkIconFileInput = document.getElementById('link-icon-file-input');
 
 const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
@@ -187,7 +191,7 @@ function renderGrid() {
 
     const img = document.createElement('img');
     img.className = 'favicon';
-    img.src = faviconUrl(link.url);
+    img.src = link.icon || faviconUrl(link.url);
     card.appendChild(img);
 
     const title = document.createElement('div');
@@ -240,6 +244,72 @@ function reorderLinks(draggedId, targetId) {
 
 /* ---------- リンク追加・編集モーダル ---------- */
 
+let pendingIcon = '';
+
+function iconModeFor(icon) {
+  if (!icon) return 'auto';
+  return icon.startsWith('data:') ? 'file' : 'url';
+}
+
+function updateIconModeVisibility() {
+  const mode = linkIconModeSelect.value;
+  linkIconUrlInput.classList.toggle('hidden', mode !== 'url');
+  linkIconFileInput.classList.toggle('hidden', mode !== 'file');
+}
+
+function refreshIconPreview() {
+  linkIconPreview.src = pendingIcon || faviconUrl(linkUrlInput.value.trim());
+}
+
+function resizeImageToDataUrl(imgSrc, size = 64) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size / img.width, size / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.src = imgSrc;
+  });
+}
+
+linkIconModeSelect.addEventListener('change', () => {
+  updateIconModeVisibility();
+  if (linkIconModeSelect.value === 'auto') {
+    pendingIcon = '';
+    refreshIconPreview();
+  } else if (linkIconModeSelect.value === 'url') {
+    pendingIcon = linkIconUrlInput.value.trim();
+    refreshIconPreview();
+  }
+});
+
+linkIconUrlInput.addEventListener('input', () => {
+  pendingIcon = linkIconUrlInput.value.trim();
+  refreshIconPreview();
+});
+
+linkIconFileInput.addEventListener('change', async () => {
+  const file = linkIconFileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    pendingIcon = await resizeImageToDataUrl(e.target.result);
+    refreshIconPreview();
+  };
+  reader.readAsDataURL(file);
+});
+
+linkUrlInput.addEventListener('input', () => {
+  if (linkIconModeSelect.value === 'auto') refreshIconPreview();
+});
+
 function openLinkModal(linkId) {
   editingLinkId = linkId;
   linkGroupSelect.innerHTML = '';
@@ -250,6 +320,9 @@ function openLinkModal(linkId) {
     linkGroupSelect.appendChild(opt);
   });
 
+  linkIconUrlInput.value = '';
+  linkIconFileInput.value = '';
+
   if (linkId) {
     const link = links[linkId];
     linkModalTitle.textContent = 'リンクを編集';
@@ -257,13 +330,20 @@ function openLinkModal(linkId) {
     linkUrlInput.value = link.url;
     linkGroupSelect.value = link.groupId;
     linkDeleteBtn.classList.remove('hidden');
+    pendingIcon = link.icon || '';
+    linkIconModeSelect.value = iconModeFor(pendingIcon);
+    if (linkIconModeSelect.value === 'url') linkIconUrlInput.value = pendingIcon;
   } else {
     linkModalTitle.textContent = 'リンクを追加';
     linkTitleInput.value = '';
     linkUrlInput.value = '';
     linkGroupSelect.value = activeGroupId;
     linkDeleteBtn.classList.add('hidden');
+    pendingIcon = '';
+    linkIconModeSelect.value = 'auto';
   }
+  updateIconModeVisibility();
+  refreshIconPreview();
   linkModal.classList.remove('hidden');
 }
 
@@ -283,13 +363,14 @@ linkSaveBtn.addEventListener('click', () => {
   }
   if (!/^https?:\/\//.test(url)) url = 'https://' + url;
   const groupId = linkGroupSelect.value;
+  const icon = pendingIcon || null;
 
   if (editingLinkId) {
-    update(ref(db, `links/${editingLinkId}`), { title, url, groupId });
+    update(ref(db, `links/${editingLinkId}`), { title, url, groupId, icon });
   } else {
     const id = push(ref(db, 'links')).key;
     const order = Object.values(links).filter((l) => l.groupId === groupId).length;
-    set(ref(db, `links/${id}`), { title, url, groupId, order });
+    set(ref(db, `links/${id}`), { title, url, groupId, order, icon });
   }
   closeLinkModal();
 });

@@ -41,6 +41,18 @@
       <input type="text" id="link-title-input" placeholder="タイトル">
       <input type="text" id="link-url-input" placeholder="https://...">
       <select id="link-group-select"></select>
+
+      <div class="icon-row">
+        <img id="link-icon-preview" class="icon-preview" alt="">
+        <select id="link-icon-mode-select">
+          <option value="auto">アイコン: 自動(ファビコン)</option>
+          <option value="url">アイコン: URLで指定</option>
+          <option value="file">アイコン: 端末から選択</option>
+        </select>
+      </div>
+      <input type="text" id="link-icon-url-input" placeholder="https://.../icon.png" class="hidden">
+      <input type="file" id="link-icon-file-input" accept="image/*" class="hidden">
+
       <div class="modal-actions">
         <button id="link-delete-btn" class="hidden">削除</button>
         <button id="link-cancel-btn">キャンセル</button>
