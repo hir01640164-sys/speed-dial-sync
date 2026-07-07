@@ -43,6 +43,8 @@ const bgImageInput = document.getElementById('bg-image-input');
 const settingsSaveBtn = document.getElementById('settings-save-btn');
 const settingsCancelBtn = document.getElementById('settings-cancel-btn');
 const settingsResetBtn = document.getElementById('settings-reset-btn');
+const importBtn = document.getElementById('import-btn');
+const importFileInput = document.getElementById('import-file-input');
 
 let groups = {};
 let links = {};
@@ -540,4 +542,73 @@ settingsResetBtn.addEventListener('click', () => {
   fillSettingsInputs(settings);
   applySettings(settings);
   renderGrid();
+});
+
+/* ---------- Speed Dial 2 バックアップのインポート ---------- */
+
+importBtn.addEventListener('click', () => importFileInput.click());
+
+importFileInput.addEventListener('change', async () => {
+  const file = importFileInput.files[0];
+  importFileInput.value = '';
+  if (!file) return;
+
+  let data;
+  try {
+    data = JSON.parse(await file.text());
+  } catch {
+    alert('JSONファイルの読み込みに失敗しました');
+    return;
+  }
+  if (!Array.isArray(data.groups) || !Array.isArray(data.dials)) {
+    alert('Speed Dial 2のバックアップ形式として認識できませんでした');
+    return;
+  }
+
+  const ok = confirm(
+    `既存のグループ・リンクをすべて削除し、Speed Dial 2から ${data.groups.length}グループ・${data.dials.length}件のリンクをインポートします。よろしいですか?`
+  );
+  if (!ok) return;
+
+  const groupIdMap = {};
+  const updates = {};
+
+  const sortedGroups = [...data.groups].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+  sortedGroups.forEach((g, index) => {
+    const newId = push(ref(db, 'groups')).key;
+    groupIdMap[g.id] = newId;
+    updates[`groups/${newId}`] = { name: (g.title || '無題').trim(), order: index };
+  });
+
+  const dialsByGroup = {};
+  data.dials.forEach((d) => {
+    if (!dialsByGroup[d.idgroup]) dialsByGroup[d.idgroup] = [];
+    dialsByGroup[d.idgroup].push(d);
+  });
+
+  Object.keys(dialsByGroup).forEach((oldGroupId) => {
+    const newGroupId = groupIdMap[oldGroupId];
+    if (!newGroupId) return;
+    const dials = dialsByGroup[oldGroupId];
+    dials.sort((a, b) => (a.position ?? 999) - (b.position ?? 999) || a.id - b.id);
+    dials.forEach((d, index) => {
+      const newId = push(ref(db, 'links')).key;
+      updates[`links/${newId}`] = {
+        groupId: newGroupId,
+        title: (d.title || '').trim(),
+        url: d.url,
+        order: index,
+        icon: d.thumbnail || null,
+      };
+    });
+  });
+
+  await remove(ref(db, 'groups'));
+  await remove(ref(db, 'links'));
+  await update(ref(db), updates);
+
+  activeGroupId = null;
+  currentPage = 0;
+  settingsModal.classList.add('hidden');
+  alert('インポートが完了しました');
 });

@@ -87,6 +87,11 @@
         <label>背景画像URL(空欄で解除)</label>
         <input type="text" id="bg-image-input" placeholder="https://...">
       </div>
+      <div class="settings-row">
+        <label>Speed Dial 2バックアップのインポート(既存データは全て置き換わります)</label>
+        <input type="file" id="import-file-input" accept="application/json" class="hidden">
+        <button type="button" id="import-btn">JSONファイルを選択してインポート</button>
+      </div>
       <div class="modal-actions">
         <button id="settings-reset-btn">リセット</button>
         <button id="settings-cancel-btn">キャンセル</button>

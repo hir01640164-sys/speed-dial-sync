@@ -260,3 +260,12 @@ body.has-bg-image {
 #settings-save-btn { background: var(--accent); color: #fff; }
 #settings-cancel-btn { background: var(--border); color: var(--text); }
 #settings-reset-btn { background: transparent; color: var(--text-dim); border: 1px solid var(--border); margin-right: auto; }
+#import-btn {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
