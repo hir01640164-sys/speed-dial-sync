@@ -33,6 +33,8 @@ const columnsInput = document.getElementById('columns-input');
 const columnsValue = document.getElementById('columns-value');
 const marginXInput = document.getElementById('margin-x-input');
 const marginXValue = document.getElementById('margin-x-value');
+const iconScaleInput = document.getElementById('icon-scale-input');
+const iconScaleValue = document.getElementById('icon-scale-value');
 const bgImageInput = document.getElementById('bg-image-input');
 const settingsSaveBtn = document.getElementById('settings-save-btn');
 const settingsCancelBtn = document.getElementById('settings-cancel-btn');
@@ -385,7 +387,7 @@ linkDeleteBtn.addEventListener('click', () => {
 /* ---------- 表示設定(端末ごとにlocalStorageへ保存) ---------- */
 
 const SETTINGS_KEY = 'speedDialSettings';
-const DEFAULT_SETTINGS = { columns: 6, marginX: 24, bgImage: '' };
+const DEFAULT_SETTINGS = { columns: 6, marginX: 24, iconScale: 26, bgImage: '' };
 
 function loadSettings() {
   try {
@@ -399,6 +401,7 @@ let settings = loadSettings();
 
 function applySettings(s) {
   document.documentElement.style.setProperty('--grid-columns', s.columns);
+  document.documentElement.style.setProperty('--icon-scale', s.iconScale + '%');
   linkGridEl.style.paddingLeft = s.marginX + 'px';
   linkGridEl.style.paddingRight = s.marginX + 'px';
   if (s.bgImage) {
@@ -416,6 +419,7 @@ function readDraftSettings() {
   return {
     columns: Number(columnsInput.value),
     marginX: Number(marginXInput.value),
+    iconScale: Number(iconScaleInput.value),
     bgImage: bgImageInput.value.trim(),
   };
 }
@@ -425,6 +429,8 @@ function fillSettingsInputs(s) {
   columnsValue.textContent = s.columns + '列';
   marginXInput.value = s.marginX;
   marginXValue.textContent = s.marginX + 'px';
+  iconScaleInput.value = s.iconScale;
+  iconScaleValue.textContent = s.iconScale + '%';
   bgImageInput.value = s.bgImage;
 }
 
@@ -433,10 +439,11 @@ settingsBtn.addEventListener('click', () => {
   settingsModal.classList.remove('hidden');
 });
 
-[columnsInput, marginXInput, bgImageInput].forEach((el) => {
+[columnsInput, marginXInput, iconScaleInput, bgImageInput].forEach((el) => {
   el.addEventListener('input', () => {
     columnsValue.textContent = columnsInput.value + '列';
     marginXValue.textContent = marginXInput.value + 'px';
+    iconScaleValue.textContent = iconScaleInput.value + '%';
     applySettings(readDraftSettings());
   });
 });

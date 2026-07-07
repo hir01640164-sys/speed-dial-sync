@@ -42,12 +42,13 @@
       <input type="text" id="link-url-input" placeholder="https://...">
       <select id="link-group-select"></select>
 
+      <label class="field-label">アイコン</label>
       <div class="icon-row">
         <img id="link-icon-preview" class="icon-preview" alt="">
         <select id="link-icon-mode-select">
-          <option value="auto">アイコン: 自動(ファビコン)</option>
-          <option value="url">アイコン: URLで指定</option>
-          <option value="file">アイコン: 端末から選択</option>
+          <option value="auto">自動(ファビコン)</option>
+          <option value="url">URLで指定</option>
+          <option value="file">端末から選択</option>
         </select>
       </div>
       <input type="text" id="link-icon-url-input" placeholder="https://.../icon.png" class="hidden">
@@ -71,6 +72,10 @@
       <div class="settings-row">
         <label>左右の余白: <span id="margin-x-value" class="settings-value"></span></label>
         <input type="range" id="margin-x-input" min="0" max="120" step="4">
+      </div>
+      <div class="settings-row">
+        <label>アイコンサイズ: <span id="icon-scale-value" class="settings-value"></span></label>
+        <input type="range" id="icon-scale-input" min="10" max="60" step="2">
       </div>
       <div class="settings-row">
         <label>背景画像URL(空欄で解除)</label>

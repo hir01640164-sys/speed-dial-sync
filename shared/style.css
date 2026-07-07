@@ -12,6 +12,7 @@
   --danger: #e05555;
   --border: #3a3a3a;
   --grid-columns: 6;
+  --icon-scale: 26%;
 }
 
 * { box-sizing: border-box; }
@@ -151,7 +152,7 @@ body.has-bg-image {
 }
 .card:hover { background: var(--card-hover); }
 .card.drag-over { border-color: var(--accent); }
-.card .favicon { width: 26%; aspect-ratio: 1 / 1; border-radius: 6px; background: #fff; }
+.card .favicon { width: var(--icon-scale); aspect-ratio: 1 / 1; border-radius: 6px; background: #fff; }
 .card .card-title {
   font-size: 13px;
   text-align: center;
@@ -202,8 +203,9 @@ body.has-bg-image {
   gap: 12px;
 }
 .modal-content h2 { margin: 0 0 4px; font-size: 16px; }
+.field-label { font-size: 12px; color: var(--text-dim); margin-bottom: -6px; }
 .icon-row { display: flex; align-items: center; gap: 10px; }
-.icon-row select { flex: 1; }
+.icon-row select { flex: 1; min-width: 0; }
 .icon-preview {
   width: 40px;
   height: 40px;
