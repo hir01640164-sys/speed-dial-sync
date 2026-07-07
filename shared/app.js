@@ -31,6 +31,7 @@ const linkIconPreview = document.getElementById('link-icon-preview');
 const linkIconModeSelect = document.getElementById('link-icon-mode-select');
 const linkIconUrlInput = document.getElementById('link-icon-url-input');
 const linkIconFileInput = document.getElementById('link-icon-file-input');
+const linkIconPresetGrid = document.getElementById('link-icon-preset-grid');
 
 const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
@@ -348,15 +349,58 @@ function reorderLinks(draggedId, targetId) {
 
 let pendingIcon = '';
 
+const PRESET_ICONS = [
+  { emoji: '🌐', bg: '#4d8cff' },
+  { emoji: '⭐', bg: '#f5a623' },
+  { emoji: '❤️', bg: '#e05555' },
+  { emoji: '📁', bg: '#8a7cff' },
+  { emoji: '🔖', bg: '#3ec1a5' },
+  { emoji: '💼', bg: '#6b7280' },
+  { emoji: '🛒', bg: '#ff8a5c' },
+  { emoji: '✉️', bg: '#5c9eff' },
+  { emoji: '📄', bg: '#9ca3af' },
+  { emoji: '🔔', bg: '#f6c744' },
+  { emoji: '🎮', bg: '#a78bfa' },
+  { emoji: '💰', bg: '#34c759' },
+].map((p) => ({ ...p, url: buildPresetIconDataUrl(p.emoji, p.bg) }));
+
+function buildPresetIconDataUrl(emoji, bg) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><rect width="64" height="64" rx="14" fill="${bg}"/><text x="32" y="42" font-size="32" text-anchor="middle" font-family="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif">${emoji}</text></svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+function isPresetIcon(icon) {
+  return PRESET_ICONS.some((p) => p.url === icon);
+}
+
 function iconModeFor(icon) {
   if (!icon) return 'auto';
+  if (isPresetIcon(icon)) return 'preset';
   return icon.startsWith('data:') ? 'file' : 'url';
+}
+
+function renderIconPresetGrid() {
+  linkIconPresetGrid.innerHTML = '';
+  PRESET_ICONS.forEach((preset) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'icon-preset-btn' + (pendingIcon === preset.url ? ' selected' : '');
+    btn.innerHTML = `<img src="${preset.url}" alt="">`;
+    btn.addEventListener('click', () => {
+      pendingIcon = preset.url;
+      refreshIconPreview();
+      renderIconPresetGrid();
+    });
+    linkIconPresetGrid.appendChild(btn);
+  });
 }
 
 function updateIconModeVisibility() {
   const mode = linkIconModeSelect.value;
   linkIconUrlInput.classList.toggle('hidden', mode !== 'url');
   linkIconFileInput.classList.toggle('hidden', mode !== 'file');
+  linkIconPresetGrid.classList.toggle('hidden', mode !== 'preset');
+  if (mode === 'preset') renderIconPresetGrid();
 }
 
 function refreshIconPreview() {
