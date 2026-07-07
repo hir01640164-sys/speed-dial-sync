@@ -33,6 +33,8 @@ const linkIconUrlInput = document.getElementById('link-icon-url-input');
 const linkIconFileInput = document.getElementById('link-icon-file-input');
 const linkIconPresetGrid = document.getElementById('link-icon-preset-grid');
 
+const moreMenuBtn = document.getElementById('more-menu-btn');
+const moreMenu = document.getElementById('more-menu');
 const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
 const themeColorInput = document.getElementById('theme-color-input');
@@ -706,7 +708,19 @@ function fillSettingsInputs(s) {
   updateBgPreview();
 }
 
+moreMenuBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  moreMenu.classList.toggle('hidden');
+});
+
+document.addEventListener('click', (e) => {
+  if (!moreMenu.classList.contains('hidden') && !moreMenu.contains(e.target) && e.target !== moreMenuBtn) {
+    moreMenu.classList.add('hidden');
+  }
+});
+
 settingsBtn.addEventListener('click', () => {
+  moreMenu.classList.add('hidden');
   fillSettingsInputs(settings);
   settingsModal.classList.remove('hidden');
 });

@@ -86,15 +86,22 @@ body.has-bg-image {
   -webkit-backdrop-filter: blur(6px);
 }
 #top-bar-actions {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 #group-tabs {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
+#group-tabs::-webkit-scrollbar { display: none; }
 .tab {
   position: relative;
   padding: 6px 4px;
@@ -105,6 +112,8 @@ body.has-bg-image {
   border-bottom: 2px solid transparent;
   user-select: none;
   text-align: center;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .tab.active { color: rgb(var(--theme-text-rgb)); border-bottom-color: var(--theme-color); }
 .tab.drag-over { border-bottom-color: var(--theme-color); }
@@ -114,12 +123,14 @@ body.has-bg-image {
   color: var(--text-dim);
   border: none;
   cursor: pointer;
-  opacity: 0;
+  opacity: 0.5;
   transition: opacity 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
-#group-tabs:hover .tab-add { opacity: 1; }
-.tab-add:hover { color: rgb(var(--theme-text-rgb)); }
-#logout-btn, #settings-btn {
+#group-tabs:hover .tab-add, .tab-add:active { opacity: 1; }
+.tab-add:hover { color: rgb(var(--theme-text-rgb)); opacity: 1; }
+#more-menu-btn {
   background: transparent;
   border: 1px solid var(--border);
   color: rgb(var(--theme-text-rgb) / 0.7);
@@ -132,7 +143,20 @@ body.has-bg-image {
   align-items: center;
   justify-content: center;
 }
-#logout-btn:hover, #settings-btn:hover { color: rgb(var(--theme-text-rgb)); border-color: rgb(var(--theme-text-rgb)); }
+#more-menu-btn:hover { color: rgb(var(--theme-text-rgb)); border-color: rgb(var(--theme-text-rgb)); }
+#more-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+}
+#more-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  white-space: nowrap;
+}
 
 /* カードグリッド */
 #link-grid {
