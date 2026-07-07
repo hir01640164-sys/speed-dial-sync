@@ -9,6 +9,7 @@ import {
   onValue,
 } from './vendor/firebase/firebase-database.js';
 
+const loadingScreen = document.getElementById('loading-screen');
 const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
 const groupTabsEl = document.getElementById('group-tabs');
@@ -72,12 +73,24 @@ let currentPage = 0;
 let totalPagesInGroup = 1;
 let contextMenuGroupId = null;
 
+let groupsLoaded = false;
+let linksLoaded = false;
+
+function checkInitialLoadComplete() {
+  if (groupsLoaded && linksLoaded) {
+    loadingScreen.classList.add('hidden');
+  }
+}
+
 setupAuth((user) => {
   if (user) {
     loginScreen.classList.add('hidden');
     appScreen.classList.remove('hidden');
     listenData();
   } else {
+    groupsLoaded = false;
+    linksLoaded = false;
+    loadingScreen.classList.add('hidden');
     loginScreen.classList.remove('hidden');
     appScreen.classList.add('hidden');
   }
@@ -92,10 +105,14 @@ function listenData() {
     }
     renderTabs();
     renderGrid();
+    groupsLoaded = true;
+    checkInitialLoadComplete();
   });
   onValue(ref(db, 'links'), (snapshot) => {
     links = snapshot.val() || {};
     renderGrid();
+    linksLoaded = true;
+    checkInitialLoadComplete();
   });
 }
 
@@ -364,6 +381,7 @@ pageNextBtn.addEventListener('click', goToNextPage);
 
 let touchStartX = null;
 let touchStartY = null;
+let touchIsHorizontal = false;
 
 document.body.addEventListener('touchstart', (e) => {
   if (appScreen.classList.contains('hidden')) { touchStartX = null; return; }
@@ -373,14 +391,27 @@ document.body.addEventListener('touchstart', (e) => {
   }
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
+  touchIsHorizontal = false;
 }, { passive: true });
+
+document.body.addEventListener('touchmove', (e) => {
+  if (touchStartX === null) return;
+  const dx = e.touches[0].clientX - touchStartX;
+  const dy = e.touches[0].clientY - touchStartY;
+  if (!touchIsHorizontal && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+    touchIsHorizontal = true;
+  }
+  if (touchIsHorizontal) {
+    e.preventDefault();
+  }
+}, { passive: false });
 
 document.body.addEventListener('touchend', (e) => {
   if (touchStartX === null) return;
   const dx = e.changedTouches[0].clientX - touchStartX;
   const dy = e.changedTouches[0].clientY - touchStartY;
   touchStartX = null;
-  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
     if (dx > 0) goToNextPage();
     else goToPrevPage();
   }
