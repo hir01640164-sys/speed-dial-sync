@@ -36,6 +36,7 @@ const linkIconPresetGrid = document.getElementById('link-icon-preset-grid');
 const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
 const themeColorInput = document.getElementById('theme-color-input');
+const iconStyleInput = document.getElementById('icon-style-input');
 const homeIconColorInput = document.getElementById('home-icon-color-input');
 const homeIconPreview = document.getElementById('home-icon-preview');
 const columnsInput = document.getElementById('columns-input');
@@ -236,7 +237,7 @@ function buildCard(id) {
 
   const img = document.createElement('img');
   img.className = 'favicon';
-  img.src = link.icon || faviconUrl(link.url);
+  img.src = resolveIconUrl(link.icon) || faviconUrl(link.url);
   card.appendChild(img);
 
   const title = document.createElement('div');
@@ -352,56 +353,43 @@ function reorderLinks(draggedId, targetId) {
 
 let pendingIcon = '';
 
-function svgFrame(inner) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><rect x="4" y="4" width="56" height="56" rx="12" fill="none" stroke="#000" stroke-width="4"/>${inner}</svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-}
-
-function letterIconUrl(letter) {
-  return svgFrame(`<text x="32" y="44" font-size="30" font-weight="700" text-anchor="middle" font-family="Arial, sans-serif" fill="#000">${letter}</text>`);
-}
-
-const SYMBOL_ICON_DEFS = [
-  { key: 'globe', inner: '<circle cx="32" cy="32" r="16" fill="none" stroke="#000" stroke-width="3"/><line x1="16" y1="32" x2="48" y2="32" stroke="#000" stroke-width="3"/><ellipse cx="32" cy="32" rx="7" ry="16" fill="none" stroke="#000" stroke-width="3"/>' },
-  { key: 'star', inner: '<polygon points="32,16 35.8,26.7 47.2,27.1 38.2,34.0 41.4,44.9 32,38.5 22.6,44.9 25.8,34.0 16.8,27.1 28.2,26.7" fill="#000"/>' },
-  { key: 'heart', inner: '<path d="M32 46 C20 36 10 28 10 18 C10 10 16 6 22 6 C27 6 30 9 32 13 C34 9 37 6 42 6 C48 6 54 10 54 18 C54 28 44 36 32 46 Z" fill="#000"/>' },
-  { key: 'folder', inner: '<path d="M8 18 L24 18 L28 24 L56 24 L56 50 L8 50 Z" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/>' },
-  { key: 'bookmark', inner: '<path d="M18 6 H46 V58 L32 46 L18 58 Z" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/>' },
-  { key: 'briefcase', inner: '<rect x="8" y="22" width="48" height="32" rx="4" fill="none" stroke="#000" stroke-width="3"/><path d="M24 22 v-6 a4 4 0 0 1 4-4 h8 a4 4 0 0 1 4 4 v6" fill="none" stroke="#000" stroke-width="3"/>' },
-  { key: 'cart', inner: '<path d="M8 10 h6 l6 30 h30 l6 -22 h-40" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="24" cy="50" r="4" fill="#000"/><circle cx="44" cy="50" r="4" fill="#000"/>' },
-  { key: 'mail', inner: '<rect x="8" y="16" width="48" height="32" rx="4" fill="none" stroke="#000" stroke-width="3"/><path d="M8 18 L32 38 L56 18" fill="none" stroke="#000" stroke-width="3"/>' },
-  { key: 'document', inner: '<path d="M16 6 H40 L48 14 V58 H16 Z" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/><path d="M40 6 V14 H48" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/>' },
-  { key: 'bell', inner: '<path d="M32 8 C24 8 18 14 18 24 V34 L12 44 H52 L46 34 V24 C46 14 40 8 32 8 Z" fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round"/><path d="M27 50 a5 5 0 0 0 10 0" fill="none" stroke="#000" stroke-width="3"/>' },
-  { key: 'game', inner: '<rect x="8" y="22" width="48" height="24" rx="12" fill="none" stroke="#000" stroke-width="3"/><line x1="20" y1="28" x2="20" y2="38" stroke="#000" stroke-width="3"/><line x1="15" y1="33" x2="25" y2="33" stroke="#000" stroke-width="3"/><circle cx="38" cy="30" r="2.5" fill="#000"/><circle cx="45" cy="37" r="2.5" fill="#000"/>' },
-  { key: 'money', inner: '<circle cx="32" cy="32" r="18" fill="none" stroke="#000" stroke-width="3"/><text x="32" y="41" font-size="22" font-weight="700" text-anchor="middle" font-family="Arial, sans-serif" fill="#000">¥</text>' },
+const PRESET_KEYS = [
+  'default', 'amazon', 'apple-music', 'boatrace', 'bonus-7', 'chatgpt', 'claude', 'firebase',
+  'gemini', 'github', 'gmail', 'google-calendar', 'google-photos', 'instagram', 'note',
+  'paypay-bank', 'spreadsheet', 'wordpress', 'x', 'youtube',
+  'symbol-check', 'symbol-exclamation', 'symbol-gear', 'symbol-minus', 'symbol-plus',
+  'symbol-question', 'symbol-star-filled', 'symbol-star-outline', 'symbol-times',
+  ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((l) => `letter-${l}`),
+  ...'0123456789'.split('').map((n) => `number-${n}`),
 ];
 
-const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+function presetIconPath(key, style) {
+  return `shared/icons/${style}/${key}.svg`;
+}
 
-const PRESET_ICONS = [
-  ...SYMBOL_ICON_DEFS.map((d) => ({ key: d.key, url: svgFrame(d.inner) })),
-  ...ALPHABET.map((letter) => ({ key: letter, url: letterIconUrl(letter) })),
-];
-
-function isPresetIcon(icon) {
-  return PRESET_ICONS.some((p) => p.url === icon);
+function resolveIconUrl(icon) {
+  if (icon && icon.startsWith('preset:')) {
+    return presetIconPath(icon.slice('preset:'.length), currentIconStyle);
+  }
+  return icon;
 }
 
 function iconModeFor(icon) {
   if (!icon) return 'auto';
-  if (isPresetIcon(icon)) return 'preset';
+  if (icon.startsWith('preset:')) return 'preset';
   return icon.startsWith('data:') ? 'file' : 'url';
 }
 
 function renderIconPresetGrid() {
   linkIconPresetGrid.innerHTML = '';
-  PRESET_ICONS.forEach((preset) => {
+  PRESET_KEYS.forEach((key) => {
+    const presetValue = 'preset:' + key;
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'icon-preset-btn' + (pendingIcon === preset.url ? ' selected' : '');
-    btn.innerHTML = `<img src="${preset.url}" alt="">`;
+    btn.className = 'icon-preset-btn' + (pendingIcon === presetValue ? ' selected' : '');
+    btn.innerHTML = `<img src="${presetIconPath(key, currentIconStyle)}" alt="">`;
     btn.addEventListener('click', () => {
-      pendingIcon = preset.url;
+      pendingIcon = presetValue;
       refreshIconPreview();
       renderIconPresetGrid();
     });
@@ -418,7 +406,7 @@ function updateIconModeVisibility() {
 }
 
 function refreshIconPreview() {
-  linkIconPreview.src = pendingIcon || faviconUrl(linkUrlInput.value.trim());
+  linkIconPreview.src = resolveIconUrl(pendingIcon) || faviconUrl(linkUrlInput.value.trim());
 }
 
 function resizeImageToDataUrl(imgSrc, size = 64) {
@@ -545,7 +533,7 @@ linkDeleteBtn.addEventListener('click', () => {
 /* ---------- 表示設定(端末ごとにlocalStorageへ保存) ---------- */
 
 const SETTINGS_KEY = 'speedDialSettings';
-const DEFAULT_SETTINGS = { themeColor: '#4d8cff', homeIconColor: '#4d8cff', columns: 6, marginX: 24, marginY: 24, iconScale: 26, topbarOpacity: 85, cardOpacity: 92, bgImage: '' };
+const DEFAULT_SETTINGS = { themeColor: '#4d8cff', iconStyle: 'light', homeIconColor: '#4d8cff', columns: 6, marginX: 24, marginY: 24, iconScale: 26, topbarOpacity: 85, cardOpacity: 92, bgImage: '' };
 
 function loadSettings() {
   try {
@@ -557,6 +545,7 @@ function loadSettings() {
 
 let settings = loadSettings();
 let draftBgImage = settings.bgImage;
+let currentIconStyle = settings.iconStyle;
 
 function resizeBackgroundImageToDataUrl(imgSrc, maxDim = 1920) {
   return new Promise((resolve) => {
@@ -648,6 +637,7 @@ function applyHomeIcon(color) {
 function applySettings(s) {
   applyThemeColor(s.themeColor);
   applyHomeIcon(s.homeIconColor);
+  currentIconStyle = s.iconStyle;
   document.documentElement.style.setProperty('--grid-columns', s.columns);
   document.documentElement.style.setProperty('--icon-scale', s.iconScale + '%');
   document.documentElement.style.setProperty('--topbar-opacity', s.topbarOpacity / 100);
@@ -670,6 +660,7 @@ applySettings(settings);
 function readDraftSettings() {
   return {
     themeColor: themeColorInput.value,
+    iconStyle: iconStyleInput.value,
     homeIconColor: homeIconColorInput.value,
     columns: Number(columnsInput.value),
     marginX: Number(marginXInput.value),
@@ -683,6 +674,7 @@ function readDraftSettings() {
 
 function fillSettingsInputs(s) {
   themeColorInput.value = s.themeColor;
+  iconStyleInput.value = s.iconStyle;
   homeIconColorInput.value = s.homeIconColor;
   columnsInput.value = s.columns;
   columnsValue.textContent = s.columns + '列';
@@ -707,7 +699,7 @@ settingsBtn.addEventListener('click', () => {
   settingsModal.classList.remove('hidden');
 });
 
-[themeColorInput, homeIconColorInput, columnsInput, marginXInput, marginYInput, iconScaleInput, topbarOpacityInput, cardOpacityInput].forEach((el) => {
+[themeColorInput, iconStyleInput, homeIconColorInput, columnsInput, marginXInput, marginYInput, iconScaleInput, topbarOpacityInput, cardOpacityInput].forEach((el) => {
   el.addEventListener('input', () => {
     columnsValue.textContent = columnsInput.value + '列';
     marginXValue.textContent = marginXInput.value + 'px';
