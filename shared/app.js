@@ -69,6 +69,7 @@ let editingLinkId = null;
 let draggedLinkId = null;
 let draggedGroupId = null;
 let currentPage = 0;
+let totalPagesInGroup = 1;
 let contextMenuGroupId = null;
 
 setupAuth((user) => {
@@ -295,14 +296,28 @@ function computeItemsPerPage() {
   return rows * columns;
 }
 
+function hasNextGroup() {
+  const ids = sortedGroupIds();
+  return ids.indexOf(activeGroupId) < ids.length - 1;
+}
+
+function hasPrevGroup() {
+  return sortedGroupIds().indexOf(activeGroupId) > 0;
+}
+
+function switchToGroup(id, page) {
+  activeGroupId = id;
+  currentPage = page;
+  renderTabs();
+  renderGrid();
+}
+
 function updatePageNav(totalPages) {
-  if (totalPages <= 1) {
-    pagePrevBtn.classList.add('hidden');
-    pageNextBtn.classList.add('hidden');
-    return;
-  }
-  pagePrevBtn.classList.toggle('hidden', currentPage === 0);
-  pageNextBtn.classList.toggle('hidden', currentPage === totalPages - 1);
+  totalPagesInGroup = totalPages;
+  const atFirst = currentPage === 0;
+  const atLast = currentPage >= totalPages - 1;
+  pagePrevBtn.classList.toggle('hidden', atFirst && !hasPrevGroup());
+  pageNextBtn.classList.toggle('hidden', atLast && !hasNextGroup());
 }
 
 function renderGrid() {
@@ -310,31 +325,59 @@ function renderGrid() {
   renderCards(allIds, true);
 
   const perPage = computeItemsPerPage();
+  let totalPages = 1;
   if (isFinite(perPage) && allIds.length > perPage) {
-    const totalPages = Math.max(1, Math.ceil(allIds.length / perPage));
+    totalPages = Math.max(1, Math.ceil(allIds.length / perPage));
     if (currentPage > totalPages - 1) currentPage = totalPages - 1;
     if (currentPage < 0) currentPage = 0;
     const start = currentPage * perPage;
     const pageIds = allIds.slice(start, start + perPage);
     renderCards(pageIds, currentPage === totalPages - 1);
-    updatePageNav(totalPages);
   } else {
     currentPage = 0;
-    updatePageNav(1);
+  }
+  updatePageNav(totalPages);
+}
+
+function goToNextPage() {
+  if (currentPage < totalPagesInGroup - 1) {
+    currentPage++;
+    renderGrid();
+  } else if (hasNextGroup()) {
+    const ids = sortedGroupIds();
+    switchToGroup(ids[ids.indexOf(activeGroupId) + 1], 0);
   }
 }
 
-pagePrevBtn.addEventListener('click', () => {
+function goToPrevPage() {
   if (currentPage > 0) {
     currentPage--;
     renderGrid();
+  } else if (hasPrevGroup()) {
+    const ids = sortedGroupIds();
+    switchToGroup(ids[ids.indexOf(activeGroupId) - 1], Infinity);
   }
-});
+}
 
-pageNextBtn.addEventListener('click', () => {
-  currentPage++;
-  renderGrid();
-});
+pagePrevBtn.addEventListener('click', goToPrevPage);
+pageNextBtn.addEventListener('click', goToNextPage);
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+linkGridEl.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+linkGridEl.addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    if (dx > 0) goToNextPage();
+    else goToPrevPage();
+  }
+}, { passive: true });
 
 window.addEventListener('resize', () => renderGrid());
 
