@@ -235,15 +235,21 @@ body.has-bg-image {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 .modal-content {
   background: var(--bg-elevated);
   padding: 24px;
   border-radius: 10px;
-  width: 300px;
+  width: min(300px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex-shrink: 0;
 }
 #settings-modal .modal-content { background: rgb(var(--panel-bg-rgb)); }
 #theme-color-input {
