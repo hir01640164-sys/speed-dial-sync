@@ -36,6 +36,8 @@ const linkIconPresetGrid = document.getElementById('link-icon-preset-grid');
 const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
 const themeColorInput = document.getElementById('theme-color-input');
+const homeIconColorInput = document.getElementById('home-icon-color-input');
+const homeIconPreview = document.getElementById('home-icon-preview');
 const columnsInput = document.getElementById('columns-input');
 const columnsValue = document.getElementById('columns-value');
 const marginXInput = document.getElementById('margin-x-input');
@@ -543,7 +545,7 @@ linkDeleteBtn.addEventListener('click', () => {
 /* ---------- 表示設定(端末ごとにlocalStorageへ保存) ---------- */
 
 const SETTINGS_KEY = 'speedDialSettings';
-const DEFAULT_SETTINGS = { themeColor: '#4d8cff', columns: 6, marginX: 24, marginY: 24, iconScale: 26, topbarOpacity: 85, cardOpacity: 92, bgImage: '' };
+const DEFAULT_SETTINGS = { themeColor: '#4d8cff', homeIconColor: '#4d8cff', columns: 6, marginX: 24, marginY: 24, iconScale: 26, topbarOpacity: 85, cardOpacity: 92, bgImage: '' };
 
 function loadSettings() {
   try {
@@ -602,8 +604,50 @@ function applyThemeColor(hex) {
   document.documentElement.style.setProperty('--panel-bg-rgb', panelBgRgb.join(' '));
 }
 
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function buildHomeIconDataUrl(bgColor, size = 192) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const radius = size * 0.22;
+  ctx.fillStyle = bgColor;
+  roundRectPath(ctx, 0, 0, size, size, radius);
+  ctx.fill();
+
+  ctx.fillStyle = '#ffffff';
+  const pad = size * 0.24;
+  const gap = size * 0.1;
+  const cell = (size - 2 * pad - gap) / 2;
+  const r = cell * 0.28;
+  [[pad, pad], [pad + cell + gap, pad], [pad, pad + cell + gap], [pad + cell + gap, pad + cell + gap]].forEach(([x, y]) => {
+    roundRectPath(ctx, x, y, cell, cell, r);
+    ctx.fill();
+  });
+  return canvas.toDataURL('image/png');
+}
+
+function applyHomeIcon(color) {
+  const dataUrl = buildHomeIconDataUrl(color, 192);
+  const appleTouchIcon = document.querySelector('link[rel="apple-touch-icon"]');
+  if (appleTouchIcon) appleTouchIcon.href = dataUrl;
+  const favicon = document.querySelector('link[rel="icon"]');
+  if (favicon) favicon.href = dataUrl;
+  homeIconPreview.src = dataUrl;
+}
+
 function applySettings(s) {
   applyThemeColor(s.themeColor);
+  applyHomeIcon(s.homeIconColor);
   document.documentElement.style.setProperty('--grid-columns', s.columns);
   document.documentElement.style.setProperty('--icon-scale', s.iconScale + '%');
   document.documentElement.style.setProperty('--topbar-opacity', s.topbarOpacity / 100);
@@ -626,6 +670,7 @@ applySettings(settings);
 function readDraftSettings() {
   return {
     themeColor: themeColorInput.value,
+    homeIconColor: homeIconColorInput.value,
     columns: Number(columnsInput.value),
     marginX: Number(marginXInput.value),
     marginY: Number(marginYInput.value),
@@ -638,6 +683,7 @@ function readDraftSettings() {
 
 function fillSettingsInputs(s) {
   themeColorInput.value = s.themeColor;
+  homeIconColorInput.value = s.homeIconColor;
   columnsInput.value = s.columns;
   columnsValue.textContent = s.columns + '列';
   marginXInput.value = s.marginX;
@@ -661,7 +707,7 @@ settingsBtn.addEventListener('click', () => {
   settingsModal.classList.remove('hidden');
 });
 
-[themeColorInput, columnsInput, marginXInput, marginYInput, iconScaleInput, topbarOpacityInput, cardOpacityInput].forEach((el) => {
+[themeColorInput, homeIconColorInput, columnsInput, marginXInput, marginYInput, iconScaleInput, topbarOpacityInput, cardOpacityInput].forEach((el) => {
   el.addEventListener('input', () => {
     columnsValue.textContent = columnsInput.value + '列';
     marginXValue.textContent = marginXInput.value + 'px';
