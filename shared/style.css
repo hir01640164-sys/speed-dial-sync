@@ -2,8 +2,6 @@
   --page-bg: #ffffff;
   --bg: #1a1a1a;
   --bg-elevated: #4a4a4a;
-  --card-bg: #f5f5f5;
-  --card-hover: #e8e8e8;
   --card-border: #e0e0e0;
   --card-text: #1a1a1a;
   --text: #eee;
@@ -13,6 +11,8 @@
   --border: #3a3a3a;
   --grid-columns: 6;
   --icon-scale: 26%;
+  --topbar-opacity: 0.85;
+  --card-opacity: 0.92;
 }
 
 * { box-sizing: border-box; }
@@ -74,6 +74,9 @@ body.has-bg-image {
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
+  background: rgba(255, 255, 255, var(--topbar-opacity));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 #top-bar-actions {
   display: flex;
@@ -156,7 +159,7 @@ body.has-bg-image {
 .page-nav-left { left: 0; border-radius: 0 8px 8px 0; }
 .page-nav-right { right: 0; border-radius: 8px 0 0 8px; }
 .card {
-  background: var(--card-bg);
+  background: rgba(245, 245, 245, var(--card-opacity));
   border-radius: 10px;
   padding: 16px 10px;
   display: flex;
@@ -168,7 +171,7 @@ body.has-bg-image {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   color: var(--card-text);
 }
-.card:hover { background: var(--card-hover); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
+.card:hover { background: rgba(232, 232, 232, var(--card-opacity)); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
 .card.drag-over { box-shadow: 0 0 0 2px var(--accent); }
 .card .favicon { width: var(--icon-scale); aspect-ratio: 1 / 1; border-radius: 6px; background: transparent; object-fit: contain; }
 .card .card-title {
@@ -202,7 +205,7 @@ body.has-bg-image {
   font-size: 28px;
   background: transparent;
 }
-.card-add:hover { background: var(--card-hover); }
+.card-add:hover { background: rgba(232, 232, 232, var(--card-opacity)); }
 
 /* モーダル */
 .modal {

@@ -39,6 +39,10 @@ const marginYInput = document.getElementById('margin-y-input');
 const marginYValue = document.getElementById('margin-y-value');
 const iconScaleInput = document.getElementById('icon-scale-input');
 const iconScaleValue = document.getElementById('icon-scale-value');
+const topbarOpacityInput = document.getElementById('topbar-opacity-input');
+const topbarOpacityValue = document.getElementById('topbar-opacity-value');
+const cardOpacityInput = document.getElementById('card-opacity-input');
+const cardOpacityValue = document.getElementById('card-opacity-value');
 const bgImageInput = document.getElementById('bg-image-input');
 const bgImageFileInput = document.getElementById('bg-image-file-input');
 const bgImagePreview = document.getElementById('bg-image-preview');
@@ -456,7 +460,7 @@ linkDeleteBtn.addEventListener('click', () => {
 /* ---------- 表示設定(端末ごとにlocalStorageへ保存) ---------- */
 
 const SETTINGS_KEY = 'speedDialSettings';
-const DEFAULT_SETTINGS = { columns: 6, marginX: 24, marginY: 24, iconScale: 26, bgImage: '' };
+const DEFAULT_SETTINGS = { columns: 6, marginX: 24, marginY: 24, iconScale: 26, topbarOpacity: 85, cardOpacity: 92, bgImage: '' };
 
 function loadSettings() {
   try {
@@ -497,6 +501,8 @@ function updateBgPreview() {
 function applySettings(s) {
   document.documentElement.style.setProperty('--grid-columns', s.columns);
   document.documentElement.style.setProperty('--icon-scale', s.iconScale + '%');
+  document.documentElement.style.setProperty('--topbar-opacity', s.topbarOpacity / 100);
+  document.documentElement.style.setProperty('--card-opacity', s.cardOpacity / 100);
   linkGridEl.style.paddingLeft = s.marginX + 'px';
   linkGridEl.style.paddingRight = s.marginX + 'px';
   linkGridEl.style.paddingTop = s.marginY + 'px';
@@ -518,6 +524,8 @@ function readDraftSettings() {
     marginX: Number(marginXInput.value),
     marginY: Number(marginYInput.value),
     iconScale: Number(iconScaleInput.value),
+    topbarOpacity: Number(topbarOpacityInput.value),
+    cardOpacity: Number(cardOpacityInput.value),
     bgImage: draftBgImage,
   };
 }
@@ -531,6 +539,10 @@ function fillSettingsInputs(s) {
   marginYValue.textContent = s.marginY + 'px';
   iconScaleInput.value = s.iconScale;
   iconScaleValue.textContent = s.iconScale + '%';
+  topbarOpacityInput.value = s.topbarOpacity;
+  topbarOpacityValue.textContent = s.topbarOpacity + '%';
+  cardOpacityInput.value = s.cardOpacity;
+  cardOpacityValue.textContent = s.cardOpacity + '%';
   draftBgImage = s.bgImage;
   bgImageInput.value = s.bgImage && !s.bgImage.startsWith('data:') ? s.bgImage : '';
   bgImageFileInput.value = '';
@@ -542,12 +554,14 @@ settingsBtn.addEventListener('click', () => {
   settingsModal.classList.remove('hidden');
 });
 
-[columnsInput, marginXInput, marginYInput, iconScaleInput].forEach((el) => {
+[columnsInput, marginXInput, marginYInput, iconScaleInput, topbarOpacityInput, cardOpacityInput].forEach((el) => {
   el.addEventListener('input', () => {
     columnsValue.textContent = columnsInput.value + '列';
     marginXValue.textContent = marginXInput.value + 'px';
     marginYValue.textContent = marginYInput.value + 'px';
     iconScaleValue.textContent = iconScaleInput.value + '%';
+    topbarOpacityValue.textContent = topbarOpacityInput.value + '%';
+    cardOpacityValue.textContent = cardOpacityInput.value + '%';
     applySettings(readDraftSettings());
     renderGrid();
   });
