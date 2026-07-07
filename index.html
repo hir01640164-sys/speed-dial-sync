@@ -84,8 +84,12 @@
         <input type="range" id="icon-scale-input" min="10" max="60" step="2">
       </div>
       <div class="settings-row">
-        <label>背景画像URL(空欄で解除)</label>
-        <input type="text" id="bg-image-input" placeholder="https://...">
+        <label>背景画像(空欄で解除)</label>
+        <div class="icon-row">
+          <img id="bg-image-preview" class="icon-preview bg-preview" alt="">
+          <input type="text" id="bg-image-input" placeholder="https://...">
+        </div>
+        <input type="file" id="bg-image-file-input" accept="image/*">
       </div>
       <div class="settings-row">
         <label>Speed Dial 2バックアップのインポート(既存データは全て置き換わります)</label>

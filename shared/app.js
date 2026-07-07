@@ -40,6 +40,8 @@ const marginYValue = document.getElementById('margin-y-value');
 const iconScaleInput = document.getElementById('icon-scale-input');
 const iconScaleValue = document.getElementById('icon-scale-value');
 const bgImageInput = document.getElementById('bg-image-input');
+const bgImageFileInput = document.getElementById('bg-image-file-input');
+const bgImagePreview = document.getElementById('bg-image-preview');
 const settingsSaveBtn = document.getElementById('settings-save-btn');
 const settingsCancelBtn = document.getElementById('settings-cancel-btn');
 const settingsResetBtn = document.getElementById('settings-reset-btn');
@@ -465,6 +467,32 @@ function loadSettings() {
 }
 
 let settings = loadSettings();
+let draftBgImage = settings.bgImage;
+
+function resizeBackgroundImageToDataUrl(imgSrc, maxDim = 1920) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const scale = maxDim / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = imgSrc;
+  });
+}
+
+function updateBgPreview() {
+  bgImagePreview.src = draftBgImage || '';
+  bgImagePreview.style.visibility = draftBgImage ? 'visible' : 'hidden';
+}
 
 function applySettings(s) {
   document.documentElement.style.setProperty('--grid-columns', s.columns);
@@ -490,7 +518,7 @@ function readDraftSettings() {
     marginX: Number(marginXInput.value),
     marginY: Number(marginYInput.value),
     iconScale: Number(iconScaleInput.value),
-    bgImage: bgImageInput.value.trim(),
+    bgImage: draftBgImage,
   };
 }
 
@@ -503,7 +531,10 @@ function fillSettingsInputs(s) {
   marginYValue.textContent = s.marginY + 'px';
   iconScaleInput.value = s.iconScale;
   iconScaleValue.textContent = s.iconScale + '%';
-  bgImageInput.value = s.bgImage;
+  draftBgImage = s.bgImage;
+  bgImageInput.value = s.bgImage && !s.bgImage.startsWith('data:') ? s.bgImage : '';
+  bgImageFileInput.value = '';
+  updateBgPreview();
 }
 
 settingsBtn.addEventListener('click', () => {
@@ -511,7 +542,7 @@ settingsBtn.addEventListener('click', () => {
   settingsModal.classList.remove('hidden');
 });
 
-[columnsInput, marginXInput, marginYInput, iconScaleInput, bgImageInput].forEach((el) => {
+[columnsInput, marginXInput, marginYInput, iconScaleInput].forEach((el) => {
   el.addEventListener('input', () => {
     columnsValue.textContent = columnsInput.value + '列';
     marginXValue.textContent = marginXInput.value + 'px';
@@ -522,7 +553,27 @@ settingsBtn.addEventListener('click', () => {
   });
 });
 
+bgImageInput.addEventListener('input', () => {
+  draftBgImage = bgImageInput.value.trim();
+  updateBgPreview();
+  applySettings(readDraftSettings());
+});
+
+bgImageFileInput.addEventListener('change', async () => {
+  const file = bgImageFileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    draftBgImage = await resizeBackgroundImageToDataUrl(e.target.result);
+    bgImageInput.value = '';
+    updateBgPreview();
+    applySettings(readDraftSettings());
+  };
+  reader.readAsDataURL(file);
+});
+
 settingsCancelBtn.addEventListener('click', () => {
+  draftBgImage = settings.bgImage;
   applySettings(settings);
   settingsModal.classList.add('hidden');
   renderGrid();
