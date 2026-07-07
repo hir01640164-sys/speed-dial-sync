@@ -77,6 +77,8 @@ body.has-bg-image {
 
 /* トップバー・グループタブ */
 #top-bar {
+  position: relative;
+  z-index: 15;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -224,12 +226,13 @@ body.has-bg-image {
 }
 .card:hover .edit-btn { opacity: 1; }
 .card-add {
-  border: 1px dashed var(--card-border);
+  border: none;
+  box-shadow: none;
   color: var(--text-dim);
   font-size: 28px;
   background: transparent;
 }
-.card-add:hover { background: rgb(var(--card-bg-rgb) / var(--card-opacity)); }
+.card-add:hover { color: rgb(var(--theme-text-rgb)); }
 
 /* タブの右クリック的メニュー(リネーム/削除) */
 .context-menu {
