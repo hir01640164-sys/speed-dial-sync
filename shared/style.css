@@ -11,6 +11,7 @@
   --accent: #4d8cff;
   --danger: #e05555;
   --border: #3a3a3a;
+  --card-size: 140px;
 }
 
 * { box-sizing: border-box; }
@@ -21,6 +22,11 @@ body {
   background: var(--page-bg);
   color: var(--text);
   font-family: -apple-system, "Segoe UI", "Hiragino Sans", sans-serif;
+}
+body.has-bg-image {
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 .hidden { display: none !important; }
@@ -67,7 +73,11 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
-  border-bottom: 1px solid var(--border);
+}
+#top-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 #group-tabs {
   display: flex;
@@ -75,20 +85,32 @@ body {
   flex-wrap: wrap;
 }
 .tab {
-  padding: 6px 14px;
+  position: relative;
+  padding: 6px 20px;
   border-radius: 20px;
   background: var(--bg-elevated);
   color: var(--text-dim);
   cursor: pointer;
   border: 1px solid transparent;
   user-select: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  text-align: center;
 }
 .tab.active { color: #fff; border-color: var(--accent); }
 .tab.drag-over { border-color: var(--accent); }
-.tab .tab-close { opacity: 0; font-size: 12px; }
+.tab .tab-close {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+  opacity: 0;
+}
 .tab:hover .tab-close { opacity: 1; }
 .tab-add {
   padding: 6px 14px;
@@ -98,7 +120,7 @@ body {
   border: 1px dashed var(--border);
   cursor: pointer;
 }
-#logout-btn {
+#logout-btn, #settings-btn {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-dim);
@@ -110,7 +132,7 @@ body {
 /* カードグリッド */
 #link-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-size), 1fr));
   gap: 16px;
   padding: 24px;
 }
@@ -129,7 +151,7 @@ body {
 }
 .card:hover { background: var(--card-hover); }
 .card.drag-over { border-color: var(--accent); }
-.card .favicon { width: 32px; height: 32px; border-radius: 6px; background: #fff; }
+.card .favicon { width: calc(var(--card-size) * 0.22); height: calc(var(--card-size) * 0.22); border-radius: 6px; background: #fff; }
 .card .card-title {
   font-size: 13px;
   text-align: center;
@@ -199,3 +221,11 @@ body {
 #link-save-btn { background: var(--accent); color: #fff; }
 #link-cancel-btn { background: var(--border); color: var(--text); }
 #link-delete-btn { background: var(--danger); color: #fff; margin-right: auto; }
+
+/* 設定 */
+.settings-row { display: flex; flex-direction: column; gap: 6px; }
+.settings-row label { font-size: 12px; color: var(--text-dim); }
+.settings-row .settings-value { color: var(--text); }
+#settings-save-btn { background: var(--accent); color: #fff; }
+#settings-cancel-btn { background: var(--border); color: var(--text); }
+#settings-reset-btn { background: transparent; color: var(--text-dim); border: 1px solid var(--border); margin-right: auto; }

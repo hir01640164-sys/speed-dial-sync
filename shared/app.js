@@ -23,6 +23,16 @@ const linkSaveBtn = document.getElementById('link-save-btn');
 const linkCancelBtn = document.getElementById('link-cancel-btn');
 const linkDeleteBtn = document.getElementById('link-delete-btn');
 
+const settingsBtn = document.getElementById('settings-btn');
+const settingsModal = document.getElementById('settings-modal');
+const cardSizeInput = document.getElementById('card-size-input');
+const cardSizeValue = document.getElementById('card-size-value');
+const columnsInput = document.getElementById('columns-input');
+const bgImageInput = document.getElementById('bg-image-input');
+const settingsSaveBtn = document.getElementById('settings-save-btn');
+const settingsCancelBtn = document.getElementById('settings-cancel-btn');
+const settingsResetBtn = document.getElementById('settings-reset-btn');
+
 let groups = {};
 let links = {};
 let activeGroupId = null;
@@ -288,4 +298,79 @@ linkDeleteBtn.addEventListener('click', () => {
   if (!confirm('このリンクを削除しますか?')) return;
   remove(ref(db, `links/${editingLinkId}`));
   closeLinkModal();
+});
+
+/* ---------- 表示設定(端末ごとにlocalStorageへ保存) ---------- */
+
+const SETTINGS_KEY = 'speedDialSettings';
+const DEFAULT_SETTINGS = { cardSize: 140, columns: 0, bgImage: '' };
+
+function loadSettings() {
+  try {
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) };
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+
+let settings = loadSettings();
+
+function applySettings(s) {
+  document.documentElement.style.setProperty('--card-size', s.cardSize + 'px');
+  linkGridEl.style.gridTemplateColumns = s.columns > 0 ? `repeat(${s.columns}, 1fr)` : '';
+  if (s.bgImage) {
+    document.body.style.backgroundImage = `url("${s.bgImage}")`;
+    document.body.classList.add('has-bg-image');
+  } else {
+    document.body.style.backgroundImage = '';
+    document.body.classList.remove('has-bg-image');
+  }
+}
+
+applySettings(settings);
+
+function readDraftSettings() {
+  return {
+    cardSize: Number(cardSizeInput.value),
+    columns: Number(columnsInput.value),
+    bgImage: bgImageInput.value.trim(),
+  };
+}
+
+function fillSettingsInputs(s) {
+  cardSizeInput.value = s.cardSize;
+  cardSizeValue.textContent = s.cardSize + 'px';
+  columnsInput.value = s.columns;
+  bgImageInput.value = s.bgImage;
+}
+
+settingsBtn.addEventListener('click', () => {
+  fillSettingsInputs(settings);
+  settingsModal.classList.remove('hidden');
+});
+
+[cardSizeInput, columnsInput, bgImageInput].forEach((el) => {
+  el.addEventListener('input', () => {
+    cardSizeValue.textContent = cardSizeInput.value + 'px';
+    applySettings(readDraftSettings());
+  });
+});
+
+settingsCancelBtn.addEventListener('click', () => {
+  applySettings(settings);
+  settingsModal.classList.add('hidden');
+});
+
+settingsSaveBtn.addEventListener('click', () => {
+  settings = readDraftSettings();
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  applySettings(settings);
+  settingsModal.classList.add('hidden');
+});
+
+settingsResetBtn.addEventListener('click', () => {
+  settings = { ...DEFAULT_SETTINGS };
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  fillSettingsInputs(settings);
+  applySettings(settings);
 });

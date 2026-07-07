@@ -27,7 +27,10 @@
   <div id="app-screen" class="screen hidden">
     <div id="top-bar">
       <div id="group-tabs"></div>
-      <button id="logout-btn">ログアウト</button>
+      <div id="top-bar-actions">
+        <button id="settings-btn">⚙ 表示設定</button>
+        <button id="logout-btn">ログアウト</button>
+      </div>
     </div>
     <div id="link-grid"></div>
   </div>
@@ -42,6 +45,29 @@
         <button id="link-delete-btn" class="hidden">削除</button>
         <button id="link-cancel-btn">キャンセル</button>
         <button id="link-save-btn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>表示設定</h2>
+      <div class="settings-row">
+        <label>カードサイズ: <span id="card-size-value" class="settings-value"></span></label>
+        <input type="range" id="card-size-input" min="100" max="220" step="10">
+      </div>
+      <div class="settings-row">
+        <label>列数(0 = 自動調整)</label>
+        <input type="number" id="columns-input" min="0" max="12" step="1">
+      </div>
+      <div class="settings-row">
+        <label>背景画像URL(空欄で解除)</label>
+        <input type="text" id="bg-image-input" placeholder="https://...">
+      </div>
+      <div class="modal-actions">
+        <button id="settings-reset-btn">リセット</button>
+        <button id="settings-cancel-btn">キャンセル</button>
+        <button id="settings-save-btn">保存</button>
       </div>
     </div>
   </div>
