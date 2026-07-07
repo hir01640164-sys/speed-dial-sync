@@ -22,14 +22,17 @@
 * { box-sizing: border-box; }
 
 html, body {
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100%;
 }
 body {
   margin: 0;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   background: var(--page-bg);
   color: var(--text);
   font-family: -apple-system, "Segoe UI", "Hiragino Sans", sans-serif;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 body.has-bg-image {
   background-size: cover;

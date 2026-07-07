@@ -307,8 +307,10 @@ function computeItemsPerPage() {
   if (!cardHeight) return Infinity;
   const columns = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-columns'), 10) || 1;
   const marginBottom = parseFloat(linkGridEl.style.paddingBottom) || 0;
+  const safeAreaBottom = parseFloat(getComputedStyle(document.body).getPropertyValue('--safe-area-bottom')) || 0;
+  const safetyBuffer = 4;
   const gap = 16;
-  const availableHeight = window.innerHeight - linkGridEl.getBoundingClientRect().top - marginBottom;
+  const availableHeight = window.innerHeight - linkGridEl.getBoundingClientRect().top - marginBottom - safeAreaBottom - safetyBuffer;
   const rows = Math.max(1, Math.floor((availableHeight + gap) / (cardHeight + gap)));
   return rows * columns;
 }
