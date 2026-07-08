@@ -57,6 +57,7 @@ const cardOpacityValue = document.getElementById('card-opacity-value');
 const bgImageInput = document.getElementById('bg-image-input');
 const bgImageFileInput = document.getElementById('bg-image-file-input');
 const bgImagePreview = document.getElementById('bg-image-preview');
+const bgPresetGrid = document.getElementById('bg-preset-grid');
 const settingsSaveBtn = document.getElementById('settings-save-btn');
 const settingsCancelBtn = document.getElementById('settings-cancel-btn');
 const settingsResetBtn = document.getElementById('settings-reset-btn');
@@ -667,6 +668,33 @@ function resizeBackgroundImageToDataUrl(imgSrc, maxDim = 1920) {
 function updateBgPreview() {
   bgImagePreview.src = draftBgImage || '';
   bgImagePreview.style.visibility = draftBgImage ? 'visible' : 'hidden';
+  renderBgPresetGrid();
+}
+
+const BACKGROUND_PRESETS = [
+  { key: 'ink-pink', path: 'shared/backgrounds/ink-pink.jpg', thumb: 'shared/backgrounds/thumbs/ink-pink.jpg' },
+  { key: 'ink-citrus', path: 'shared/backgrounds/ink-citrus.jpg', thumb: 'shared/backgrounds/thumbs/ink-citrus.jpg' },
+  { key: 'ink-pastel-gold', path: 'shared/backgrounds/ink-pastel-gold.jpg', thumb: 'shared/backgrounds/thumbs/ink-pastel-gold.jpg' },
+  { key: 'ink-pastel-wide', path: 'shared/backgrounds/ink-pastel-wide.jpg', thumb: 'shared/backgrounds/thumbs/ink-pastel-wide.jpg' },
+];
+
+function renderBgPresetGrid() {
+  bgPresetGrid.innerHTML = '';
+  BACKGROUND_PRESETS.forEach((preset) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'bg-preset-btn' + (draftBgImage === preset.path ? ' selected' : '');
+    btn.style.backgroundImage = `url("${preset.thumb}")`;
+    btn.title = preset.key;
+    btn.addEventListener('click', () => {
+      draftBgImage = preset.path;
+      bgImageInput.value = '';
+      bgImageFileInput.value = '';
+      updateBgPreview();
+      applySettings(readDraftSettings());
+    });
+    bgPresetGrid.appendChild(btn);
+  });
 }
 
 function hexToRgb(hex) {
