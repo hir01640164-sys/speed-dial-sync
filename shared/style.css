@@ -117,11 +117,13 @@ body.has-bg-image {
   -webkit-backdrop-filter: blur(6px);
 }
 #top-bar-actions {
-  position: relative;
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 25;
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
 }
 #group-tabs {
   display: flex;
@@ -162,22 +164,24 @@ body.has-bg-image {
 #group-tabs:hover .tab-add, .tab-add:active { opacity: 1; }
 .tab-add:hover { color: rgb(var(--theme-text-rgb)); opacity: 1; }
 #more-menu-btn {
-  background: transparent;
+  background: rgb(var(--card-bg-rgb) / 0.92);
   border: 1px solid var(--border);
   color: rgb(var(--theme-text-rgb) / 0.7);
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 #more-menu-btn:hover { color: rgb(var(--theme-text-rgb)); border-color: rgb(var(--theme-text-rgb)); }
 #more-menu {
   position: absolute;
-  top: calc(100% + 8px);
+  bottom: calc(100% + 8px);
+  top: auto;
   right: 0;
   min-width: 160px;
 }
