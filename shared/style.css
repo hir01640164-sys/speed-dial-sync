@@ -21,14 +21,16 @@
 
 * { box-sizing: border-box; }
 
-html, body {
+html {
   overflow: hidden;
   height: 100%;
 }
 body {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
   margin: 0;
-  height: 100vh;
-  height: 100dvh;
   background: var(--page-bg);
   color: var(--text);
   font-family: -apple-system, "Segoe UI", "Hiragino Sans", sans-serif;
