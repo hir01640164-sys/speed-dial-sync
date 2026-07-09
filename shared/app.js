@@ -442,7 +442,7 @@ document.body.addEventListener('wheel', (e) => {
   const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
   if (Math.abs(delta) < 10) return;
   const now = Date.now();
-  if (pageAnimating || now - lastWheelNavAt < 350) return;
+  if (pageAnimating || now - lastWheelNavAt < 150) return;
   lastWheelNavAt = now;
   if (delta > 0) goToNextPage();
   else goToPrevPage();
