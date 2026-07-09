@@ -202,6 +202,13 @@ body.has-bg-image {
   overflow: hidden;
 }
 
+.grid-slide-clone {
+  position: fixed;
+  z-index: 5;
+  pointer-events: none;
+  margin: 0 !important;
+}
+
 .page-nav {
   position: fixed;
   top: 50%;

@@ -161,13 +161,18 @@ function renderTabs() {
       openTabContextMenu(id, tab);
     });
 
-    tab.addEventListener('dragstart', () => { draggedGroupId = id; });
+    tab.addEventListener('dragstart', () => { draggedGroupId = id; draggedLinkId = null; });
     tab.addEventListener('dragover', (e) => { e.preventDefault(); tab.classList.add('drag-over'); });
     tab.addEventListener('dragleave', () => tab.classList.remove('drag-over'));
     tab.addEventListener('drop', (e) => {
       e.preventDefault();
       tab.classList.remove('drag-over');
-      reorderGroups(draggedGroupId, id);
+      if (draggedLinkId) {
+        moveLinkToGroup(draggedLinkId, id);
+        draggedLinkId = null;
+      } else if (draggedGroupId) {
+        reorderGroups(draggedGroupId, id);
+      }
     });
 
     groupTabsEl.appendChild(tab);
@@ -277,7 +282,7 @@ function buildCard(id) {
 
   card.addEventListener('click', () => window.open(link.url, '_blank'));
 
-  card.addEventListener('dragstart', () => { draggedLinkId = id; });
+  card.addEventListener('dragstart', () => { draggedLinkId = id; draggedGroupId = null; });
   card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over'); });
   card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
   card.addEventListener('drop', (e) => {
@@ -359,24 +364,71 @@ function renderGrid() {
   updatePageNav(totalPages);
 }
 
+let pageAnimating = false;
+
+function animatePageChange(direction, changeFn) {
+  if (pageAnimating) { changeFn(); return; }
+  pageAnimating = true;
+
+  const rect = linkGridEl.getBoundingClientRect();
+  const clone = linkGridEl.cloneNode(true);
+  clone.classList.add('grid-slide-clone');
+  clone.style.left = rect.left + 'px';
+  clone.style.top = rect.top + 'px';
+  clone.style.width = rect.width + 'px';
+  clone.style.height = rect.height + 'px';
+  document.body.appendChild(clone);
+
+  changeFn();
+
+  linkGridEl.style.transition = 'none';
+  linkGridEl.style.transform = `translateX(${direction * 100}vw)`;
+  void linkGridEl.offsetWidth;
+
+  requestAnimationFrame(() => {
+    linkGridEl.style.transition = 'transform 0.28s ease';
+    clone.style.transition = 'transform 0.28s ease';
+    requestAnimationFrame(() => {
+      linkGridEl.style.transform = 'translateX(0)';
+      clone.style.transform = `translateX(${-direction * 100}vw)`;
+    });
+  });
+
+  const finish = () => {
+    if (!pageAnimating) return;
+    pageAnimating = false;
+    clone.remove();
+    linkGridEl.style.transition = '';
+    linkGridEl.style.transform = '';
+  };
+  linkGridEl.addEventListener('transitionend', finish, { once: true });
+  setTimeout(finish, 400);
+}
+
 function goToNextPage() {
-  if (currentPage < totalPagesInGroup - 1) {
-    currentPage++;
-    renderGrid();
-  } else if (hasNextGroup()) {
-    const ids = sortedGroupIds();
-    switchToGroup(ids[ids.indexOf(activeGroupId) + 1], 0);
-  }
+  if (currentPage >= totalPagesInGroup - 1 && !hasNextGroup()) return;
+  animatePageChange(1, () => {
+    if (currentPage < totalPagesInGroup - 1) {
+      currentPage++;
+      renderGrid();
+    } else {
+      const ids = sortedGroupIds();
+      switchToGroup(ids[ids.indexOf(activeGroupId) + 1], 0);
+    }
+  });
 }
 
 function goToPrevPage() {
-  if (currentPage > 0) {
-    currentPage--;
-    renderGrid();
-  } else if (hasPrevGroup()) {
-    const ids = sortedGroupIds();
-    switchToGroup(ids[ids.indexOf(activeGroupId) - 1], Infinity);
-  }
+  if (currentPage <= 0 && !hasPrevGroup()) return;
+  animatePageChange(-1, () => {
+    if (currentPage > 0) {
+      currentPage--;
+      renderGrid();
+    } else {
+      const ids = sortedGroupIds();
+      switchToGroup(ids[ids.indexOf(activeGroupId) - 1], Infinity);
+    }
+  });
 }
 
 pagePrevBtn.addEventListener('click', goToPrevPage);
@@ -415,12 +467,18 @@ document.body.addEventListener('touchend', (e) => {
   const dy = e.changedTouches[0].clientY - touchStartY;
   touchStartX = null;
   if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-    if (dx > 0) goToNextPage();
-    else goToPrevPage();
+    if (dx > 0) goToPrevPage();
+    else goToNextPage();
   }
 }, { passive: true });
 
 window.addEventListener('resize', () => renderGrid());
+
+function moveLinkToGroup(linkId, groupId) {
+  if (!linkId || !links[linkId] || links[linkId].groupId === groupId) return;
+  const targetCount = Object.keys(links).filter((id) => links[id].groupId === groupId).length;
+  update(ref(db, `links/${linkId}`), { groupId, order: targetCount });
+}
 
 function reorderLinks(draggedId, targetId) {
   if (!draggedId || draggedId === targetId) return;
@@ -676,6 +734,7 @@ const BACKGROUND_PRESETS = [
   { key: 'ink-citrus', path: 'shared/backgrounds/ink-citrus.jpg', thumb: 'shared/backgrounds/thumbs/ink-citrus.jpg' },
   { key: 'ink-pastel-gold', path: 'shared/backgrounds/ink-pastel-gold.jpg', thumb: 'shared/backgrounds/thumbs/ink-pastel-gold.jpg' },
   { key: 'ink-pastel-wide', path: 'shared/backgrounds/ink-pastel-wide.jpg', thumb: 'shared/backgrounds/thumbs/ink-pastel-wide.jpg' },
+  { key: 'ink-magenta-gold', path: 'shared/backgrounds/ink-magenta-gold.jpg', thumb: 'shared/backgrounds/thumbs/ink-magenta-gold.jpg' },
 ];
 
 function renderBgPresetGrid() {
