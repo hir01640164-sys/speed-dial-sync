@@ -434,6 +434,20 @@ function goToPrevPage() {
 pagePrevBtn.addEventListener('click', goToPrevPage);
 pageNextBtn.addEventListener('click', goToNextPage);
 
+let lastWheelNavAt = 0;
+
+document.body.addEventListener('wheel', (e) => {
+  if (appScreen.classList.contains('hidden')) return;
+  if (e.target.closest('#group-tabs') || e.target.closest('.modal')) return;
+  const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+  if (Math.abs(delta) < 10) return;
+  const now = Date.now();
+  if (pageAnimating || now - lastWheelNavAt < 350) return;
+  lastWheelNavAt = now;
+  if (delta > 0) goToNextPage();
+  else goToPrevPage();
+}, { passive: true });
+
 let touchStartX = null;
 let touchStartY = null;
 let touchIsHorizontal = false;
