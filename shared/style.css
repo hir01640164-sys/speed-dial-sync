@@ -209,6 +209,94 @@ body.has-bg-image {
   margin: 0 !important;
 }
 
+/* 枠(フェンス) */
+#fence-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.fence {
+  position: absolute;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  background: rgb(var(--card-bg-rgb) / 0.35);
+  border: 1px solid rgb(var(--theme-text-rgb) / 0.25);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  overflow: hidden;
+}
+.fence.drag-over { box-shadow: 0 0 0 2px var(--accent); }
+.fence-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  cursor: move;
+  background: rgb(var(--card-bg-rgb) / 0.55);
+  color: rgb(var(--theme-text-rgb));
+  font-size: 12px;
+  user-select: none;
+  flex-shrink: 0;
+}
+.fence-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fence-header button {
+  opacity: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  padding: 0;
+  flex-shrink: 0;
+}
+.fence:hover .fence-header button { opacity: 0.6; }
+.fence-header button:hover { opacity: 1; background: rgba(0, 0, 0, 0.15); }
+.fence-body {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  align-content: start;
+  scrollbar-width: thin;
+}
+.fence-empty-hint {
+  grid-column: 1 / -1;
+  color: rgb(var(--theme-text-rgb) / 0.4);
+  font-size: 12px;
+  text-align: center;
+  padding: 14px 0;
+}
+.fence-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+}
+.fence-resize::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid rgb(var(--theme-text-rgb) / 0.4);
+  border-bottom: 2px solid rgb(var(--theme-text-rgb) / 0.4);
+}
+
 .page-nav {
   position: fixed;
   top: 50%;

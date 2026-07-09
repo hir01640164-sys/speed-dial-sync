@@ -14,6 +14,8 @@ const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
 const groupTabsEl = document.getElementById('group-tabs');
 const linkGridEl = document.getElementById('link-grid');
+const fenceLayerEl = document.getElementById('fence-layer');
+const addFenceBtn = document.getElementById('add-fence-btn');
 const pagePrevBtn = document.getElementById('page-prev-btn');
 const pageNextBtn = document.getElementById('page-next-btn');
 const tabContextMenu = document.getElementById('tab-context-menu');
@@ -66,6 +68,7 @@ const importFileInput = document.getElementById('import-file-input');
 
 let groups = {};
 let links = {};
+let fences = {};
 let activeGroupId = null;
 let editingLinkId = null;
 let draggedLinkId = null;
@@ -115,6 +118,10 @@ function listenData() {
     linksLoaded = true;
     checkInitialLoadComplete();
   });
+  onValue(ref(db, 'fences'), (snapshot) => {
+    fences = snapshot.val() || {};
+    renderGrid();
+  });
 }
 
 function sortedGroupIds() {
@@ -125,6 +132,32 @@ function linksInActiveGroup() {
   return Object.keys(links)
     .filter((id) => links[id].groupId === activeGroupId)
     .sort((a, b) => (links[a].order ?? 0) - (links[b].order ?? 0));
+}
+
+/* ---------- 枠(フェンス): PCのみ ---------- */
+
+const isPcLayout = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+function linkFenceId(link) {
+  const fid = link.fenceId;
+  if (fid && fences[fid] && fences[fid].groupId === link.groupId) return fid;
+  return null;
+}
+
+function fencesInActiveGroup() {
+  return Object.keys(fences).filter((id) => fences[id].groupId === activeGroupId);
+}
+
+function linksInFence(fenceId) {
+  return Object.keys(links)
+    .filter((id) => linkFenceId(links[id]) === fenceId)
+    .sort((a, b) => (links[a].order ?? 0) - (links[b].order ?? 0));
+}
+
+function gridLinksInActiveGroup() {
+  const all = linksInActiveGroup();
+  if (!isPcLayout) return all;
+  return all.filter((id) => !linkFenceId(links[id]));
 }
 
 function faviconUrl(url) {
@@ -208,6 +241,9 @@ function deleteGroup(id) {
   Object.keys(links).forEach((linkId) => {
     if (links[linkId].groupId === id) remove(ref(db, `links/${linkId}`));
   });
+  Object.keys(fences).forEach((fenceId) => {
+    if (fences[fenceId].groupId === id) remove(ref(db, `fences/${fenceId}`));
+  });
   if (activeGroupId === id) activeGroupId = null;
 }
 
@@ -287,7 +323,13 @@ function buildCard(id) {
   card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
   card.addEventListener('drop', (e) => {
     e.preventDefault();
+    e.stopPropagation();
     card.classList.remove('drag-over');
+    if (!draggedLinkId || draggedLinkId === id) return;
+    const targetFence = linkFenceId(link);
+    if (links[draggedLinkId] && linkFenceId(links[draggedLinkId]) !== targetFence) {
+      update(ref(db, `links/${draggedLinkId}`), { fenceId: targetFence });
+    }
     reorderLinks(draggedLinkId, id);
   });
 
@@ -346,7 +388,7 @@ function updatePageNav(totalPages) {
 }
 
 function renderGrid() {
-  const allIds = linksInActiveGroup();
+  const allIds = gridLinksInActiveGroup();
   renderCards(allIds, true);
 
   const perPage = computeItemsPerPage();
@@ -362,6 +404,7 @@ function renderGrid() {
     currentPage = 0;
   }
   updatePageNav(totalPages);
+  renderFences();
 }
 
 let pageAnimating = false;
@@ -438,7 +481,7 @@ let lastWheelNavAt = 0;
 
 document.body.addEventListener('wheel', (e) => {
   if (appScreen.classList.contains('hidden')) return;
-  if (e.target.closest('#group-tabs') || e.target.closest('.modal')) return;
+  if (e.target.closest('#group-tabs') || e.target.closest('.modal') || e.target.closest('.fence')) return;
   const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
   if (Math.abs(delta) < 10) return;
   const now = Date.now();
@@ -488,10 +531,170 @@ document.body.addEventListener('touchend', (e) => {
 
 window.addEventListener('resize', () => renderGrid());
 
+/* ---------- 枠(フェンス)の描画と操作 ---------- */
+
+function renderFences() {
+  fenceLayerEl.innerHTML = '';
+  if (!isPcLayout || !activeGroupId) return;
+
+  fencesInActiveGroup().forEach((fenceId) => {
+    const f = fences[fenceId];
+    const el = document.createElement('div');
+    el.className = 'fence';
+    el.style.left = f.x + '%';
+    el.style.top = f.y + '%';
+    el.style.width = f.w + '%';
+    el.style.height = f.h + '%';
+
+    const header = document.createElement('div');
+    header.className = 'fence-header';
+
+    const title = document.createElement('span');
+    title.className = 'fence-title';
+    title.textContent = f.name;
+    header.appendChild(title);
+
+    const renameBtn = document.createElement('button');
+    renameBtn.textContent = '✎';
+    renameBtn.title = '名前を変更';
+    renameBtn.addEventListener('click', () => {
+      const name = prompt('枠の名前', f.name);
+      if (name) update(ref(db, `fences/${fenceId}`), { name });
+    });
+    header.appendChild(renameBtn);
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '✕';
+    deleteBtn.title = '枠を削除';
+    deleteBtn.addEventListener('click', () => deleteFence(fenceId));
+    header.appendChild(deleteBtn);
+
+    const body = document.createElement('div');
+    body.className = 'fence-body';
+    const ids = linksInFence(fenceId);
+    ids.forEach((id) => body.appendChild(buildCard(id)));
+    if (!ids.length) {
+      const hint = document.createElement('div');
+      hint.className = 'fence-empty-hint';
+      hint.textContent = 'カードをここにドラッグ';
+      body.appendChild(hint);
+    }
+
+    const resize = document.createElement('div');
+    resize.className = 'fence-resize';
+
+    header.addEventListener('mousedown', (e) => {
+      if (e.target.closest('button')) return;
+      startFenceDrag(e, fenceId, el, 'move');
+    });
+    resize.addEventListener('mousedown', (e) => startFenceDrag(e, fenceId, el, 'resize'));
+
+    el.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+    el.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      el.classList.remove('drag-over');
+      if (!draggedLinkId || !links[draggedLinkId]) return;
+      if (linkFenceId(links[draggedLinkId]) === fenceId) return;
+      update(ref(db, `links/${draggedLinkId}`), { fenceId });
+    });
+
+    el.appendChild(header);
+    el.appendChild(body);
+    el.appendChild(resize);
+    fenceLayerEl.appendChild(el);
+  });
+}
+
+function startFenceDrag(e, fenceId, el, mode) {
+  e.preventDefault();
+  const startX = e.clientX;
+  const startY = e.clientY;
+  const rect = el.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  const onMove = (ev) => {
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    if (mode === 'move') {
+      let left = Math.max(0, Math.min(rect.left + dx, vw - rect.width));
+      let top = Math.max(0, Math.min(rect.top + dy, vh - rect.height));
+      el.style.left = (left / vw) * 100 + '%';
+      el.style.top = (top / vh) * 100 + '%';
+    } else {
+      let w = Math.max(150, Math.min(rect.width + dx, vw - rect.left));
+      let h = Math.max(110, Math.min(rect.height + dy, vh - rect.top));
+      el.style.width = (w / vw) * 100 + '%';
+      el.style.height = (h / vh) * 100 + '%';
+    }
+  };
+  const onUp = () => {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    update(ref(db, `fences/${fenceId}`), {
+      x: parseFloat(el.style.left),
+      y: parseFloat(el.style.top),
+      w: parseFloat(el.style.width),
+      h: parseFloat(el.style.height),
+    });
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+function addFence() {
+  if (!activeGroupId) return;
+  const name = prompt('枠の名前を入力してください');
+  if (!name) return;
+  const count = fencesInActiveGroup().length;
+  const id = push(ref(db, 'fences')).key;
+  set(ref(db, `fences/${id}`), {
+    groupId: activeGroupId,
+    name,
+    x: 8 + ((count * 5) % 40),
+    y: 12 + ((count * 5) % 40),
+    w: 26,
+    h: 32,
+  });
+}
+
+function deleteFence(fenceId) {
+  if (!confirm(`枠「${fences[fenceId].name}」を削除しますか?(中のカードは通常の一覧に戻ります)`)) return;
+  const updates = { [`fences/${fenceId}`]: null };
+  Object.keys(links).forEach((id) => {
+    if (links[id].fenceId === fenceId) updates[`links/${id}/fenceId`] = null;
+  });
+  update(ref(db), updates);
+}
+
+addFenceBtn.addEventListener('click', () => {
+  moreMenu.classList.add('hidden');
+  addFence();
+});
+if (!isPcLayout) addFenceBtn.classList.add('hidden');
+
+// 枠の外(通常の一覧エリア)にドロップしたら枠から出す
+document.body.addEventListener('dragover', (e) => {
+  if (draggedLinkId) e.preventDefault();
+});
+document.body.addEventListener('drop', (e) => {
+  if (!draggedLinkId || !links[draggedLinkId]) return;
+  if (e.target.closest('.fence') || e.target.closest('.card') || e.target.closest('.tab')) return;
+  e.preventDefault();
+  if (linkFenceId(links[draggedLinkId])) {
+    update(ref(db, `links/${draggedLinkId}`), { fenceId: null });
+  }
+});
+
 function moveLinkToGroup(linkId, groupId) {
   if (!linkId || !links[linkId] || links[linkId].groupId === groupId) return;
   const targetCount = Object.keys(links).filter((id) => links[id].groupId === groupId).length;
-  update(ref(db, `links/${linkId}`), { groupId, order: targetCount });
+  update(ref(db, `links/${linkId}`), { groupId, order: targetCount, fenceId: null });
 }
 
 function reorderLinks(draggedId, targetId) {
@@ -672,7 +875,9 @@ linkSaveBtn.addEventListener('click', () => {
   const icon = pendingIcon || null;
 
   if (editingLinkId) {
-    update(ref(db, `links/${editingLinkId}`), { title, url, groupId, icon });
+    const changes = { title, url, groupId, icon };
+    if (links[editingLinkId] && links[editingLinkId].groupId !== groupId) changes.fenceId = null;
+    update(ref(db, `links/${editingLinkId}`), changes);
   } else {
     const id = push(ref(db, 'links')).key;
     const order = Object.values(links).filter((l) => l.groupId === groupId).length;
@@ -1025,6 +1230,7 @@ importFileInput.addEventListener('change', async () => {
 
   await remove(ref(db, 'groups'));
   await remove(ref(db, 'links'));
+  await remove(ref(db, 'fences'));
   await update(ref(db), updates);
 
   activeGroupId = null;

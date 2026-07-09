@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SpeedDial">
-<link rel="stylesheet" href="shared/style.css?v=20260709b">
+<link rel="stylesheet" href="shared/style.css?v=20260709d">
 </head>
 <body>
 
@@ -34,6 +34,7 @@
       <div id="group-tabs"></div>
     </div>
     <div id="link-grid"></div>
+    <div id="fence-layer"></div>
     <button id="page-prev-btn" class="page-nav page-nav-left hidden">‹</button>
     <button id="page-next-btn" class="page-nav page-nav-right hidden">›</button>
 
@@ -46,6 +47,14 @@
         </svg>
       </button>
       <div id="more-menu" class="context-menu hidden">
+        <button id="add-fence-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+          枠を追加
+        </button>
         <button id="settings-btn">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
@@ -168,6 +177,6 @@
     </div>
   </div>
 
-  <script type="module" src="shared/app.js?v=20260709c"></script>
+  <script type="module" src="shared/app.js?v=20260709d"></script>
 </body>
 </html>
