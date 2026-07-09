@@ -261,6 +261,19 @@ body.has-bg-image {
 }
 .fence:hover .fence-header button { opacity: 0.6; }
 .fence-header button:hover { opacity: 1; background: rgba(0, 0, 0, 0.15); }
+.fence-color-input {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  flex-shrink: 0;
+}
+.fence:hover .fence-color-input { opacity: 0.8; }
+.fence-color-input:hover { opacity: 1; }
 .fence-body {
   flex: 1;
   overflow-y: auto;

@@ -554,6 +554,19 @@ function renderFences() {
     title.textContent = f.name;
     header.appendChild(title);
 
+    if (f.color) applyFenceColor(el, header, f.color);
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.className = 'fence-color-input';
+    colorInput.title = '枠の色を変更';
+    colorInput.value = f.color || cssRgbVarToHex('--card-bg-rgb');
+    colorInput.addEventListener('input', () => applyFenceColor(el, header, colorInput.value));
+    colorInput.addEventListener('change', () => {
+      update(ref(db, `fences/${fenceId}`), { color: colorInput.value });
+    });
+    header.appendChild(colorInput);
+
     const renameBtn = document.createElement('button');
     renameBtn.textContent = '✎';
     renameBtn.title = '名前を変更';
@@ -584,7 +597,7 @@ function renderFences() {
     resize.className = 'fence-resize';
 
     header.addEventListener('mousedown', (e) => {
-      if (e.target.closest('button')) return;
+      if (e.target.closest('button') || e.target.closest('input')) return;
       startFenceDrag(e, fenceId, el, 'move');
     });
     resize.addEventListener('mousedown', (e) => startFenceDrag(e, fenceId, el, 'resize'));
@@ -608,6 +621,21 @@ function renderFences() {
     el.appendChild(resize);
     fenceLayerEl.appendChild(el);
   });
+}
+
+function applyFenceColor(el, header, hex) {
+  const rgb = hexToRgb(hex);
+  const textRgb = mixTowardRgb(rgb, [0, 0, 0], 0.6);
+  el.style.background = `rgb(${rgb.join(' ')} / 0.35)`;
+  el.style.borderColor = `rgb(${textRgb.join(' ')} / 0.35)`;
+  header.style.background = `rgb(${rgb.join(' ')} / 0.6)`;
+  header.style.color = `rgb(${textRgb.join(' ')})`;
+}
+
+function cssRgbVarToHex(varName) {
+  const parts = getComputedStyle(document.documentElement).getPropertyValue(varName).trim().split(/\s+/).map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) return '#ffffff';
+  return '#' + parts.map((c) => c.toString(16).padStart(2, '0')).join('');
 }
 
 function startFenceDrag(e, fenceId, el, mode) {
