@@ -316,7 +316,7 @@ function buildCard(id) {
   });
   card.appendChild(editBtn);
 
-  card.addEventListener('click', () => window.open(link.url, '_blank'));
+  card.addEventListener('click', () => { window.location.href = link.url; });
 
   card.addEventListener('dragstart', () => { draggedLinkId = id; draggedGroupId = null; });
   card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over'); });
