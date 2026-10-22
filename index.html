@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SpeedDial">
-<link rel="stylesheet" href="shared/style.css?v=20261022b">
+<link rel="stylesheet" href="shared/style.css?v=20261022c">
 </head>
 <body>
 
@@ -63,6 +63,23 @@
           </svg>
           表示設定
         </button>
+        <button id="backup-export-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          バックアップをエクスポート
+        </button>
+        <button id="backup-import-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          バックアップをインポート
+        </button>
+        <input type="file" id="backup-import-file-input" accept="application/json" class="hidden">
       </div>
     </div>
   </div>
@@ -158,15 +175,6 @@
         <div id="bg-preset-grid" class="bg-preset-grid"></div>
       </div>
       <div class="settings-row">
-        <label>バックアップ(リンク・グループ・枠)</label>
-        <input type="file" id="backup-import-file-input" accept="application/json" class="hidden">
-        <div class="icon-row">
-          <button type="button" id="backup-export-btn" class="settings-action-btn">書き出し</button>
-          <button type="button" id="backup-import-btn" class="settings-action-btn">読み込み(置き換え)</button>
-        </div>
-        <p class="field-note">データはこのブラウザ内にだけ保存されています。別のPCへ移すときや念のためのバックアップにご利用ください。</p>
-      </div>
-      <div class="settings-row">
         <label>Speed Dial 2バックアップのインポート(既存データは全て置き換わります)</label>
         <input type="file" id="import-file-input" accept="application/json" class="hidden">
         <button type="button" id="import-btn">JSONファイルを選択してインポート</button>
@@ -179,6 +187,6 @@
     </div>
   </div>
 
-  <script type="module" src="shared/app.js?v=20261022b"></script>
+  <script type="module" src="shared/app.js?v=20261022c"></script>
 </body>
 </html>

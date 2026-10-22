@@ -1321,7 +1321,6 @@ importFileInput.addEventListener('change', async () => {
   await remove(ref(db, 'fences'));
   await update(ref(db), updates);
 
-  activeGroupId = null;
   currentPage = 0;
   settingsModal.classList.add('hidden');
   alert('インポートが完了しました');
@@ -1334,6 +1333,7 @@ const backupImportBtn = document.getElementById('backup-import-btn');
 const backupImportFileInput = document.getElementById('backup-import-file-input');
 
 backupExportBtn.addEventListener('click', () => {
+  moreMenu.classList.add('hidden');
   const payload = { app: 'speed-dial-sync', version: 1, exportedAt: new Date().toISOString(), ...getAllData() };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -1344,7 +1344,10 @@ backupExportBtn.addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-backupImportBtn.addEventListener('click', () => backupImportFileInput.click());
+backupImportBtn.addEventListener('click', () => {
+  moreMenu.classList.add('hidden');
+  backupImportFileInput.click();
+});
 
 backupImportFileInput.addEventListener('change', async () => {
   const file = backupImportFileInput.files[0];
@@ -1360,10 +1363,9 @@ backupImportFileInput.addEventListener('change', async () => {
   const linkCount = Object.keys(data.links).length;
   if (!confirm(`現在のデータをすべて置き換え、${groupCount}グループ・${linkCount}件のリンクを読み込みます。よろしいですか?`)) return;
 
-  replaceAllData(data);
   activeGroupId = null;
   currentPage = 0;
-  settingsModal.classList.add('hidden');
+  replaceAllData(data);
   alert('読み込みが完了しました');
 });
 
