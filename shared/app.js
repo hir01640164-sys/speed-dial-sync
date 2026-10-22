@@ -1,13 +1,16 @@
-import { db } from './firebase-init.js';
-import { setupAuth } from './auth.js';
 import {
+  db,
   ref,
   push,
   set,
   update,
   remove,
   onValue,
-} from './vendor/firebase/firebase-database.js';
+  initStore,
+  getAllData,
+  replaceAllData,
+} from './store.js';
+import { migrateFromFirebase } from './migrate.js';
 
 const loadingScreen = document.getElementById('loading-screen');
 const loginScreen = document.getElementById('login-screen');
@@ -86,19 +89,72 @@ function checkInitialLoadComplete() {
   }
 }
 
-setupAuth((user) => {
-  if (user) {
-    loginScreen.classList.add('hidden');
-    appScreen.classList.remove('hidden');
-    listenData();
-  } else {
-    groupsLoaded = false;
-    linksLoaded = false;
-    loadingScreen.classList.add('hidden');
-    loginScreen.classList.remove('hidden');
-    appScreen.classList.add('hidden');
+function startApp() {
+  loginScreen.classList.add('hidden');
+  appScreen.classList.remove('hidden');
+  listenData();
+}
+
+function startWithData(data) {
+  const next = { groups: {}, links: {}, fences: {}, ...data };
+  if (!Object.keys(next.groups).length) {
+    next.groups = { [push().key]: { name: 'メイン', order: 0 } };
+  }
+  replaceAllData(next);
+  startApp();
+}
+
+/* ---------- 旧データ(Firebase)の引き継ぎ: 初回起動時のみ ---------- */
+
+const loginForm = document.getElementById('login-form');
+const loginEmail = document.getElementById('login-email');
+const loginPassword = document.getElementById('login-password');
+const loginError = document.getElementById('login-error');
+const migrateSkipBtn = document.getElementById('migrate-skip-btn');
+
+function showMigrationPrompt() {
+  loadingScreen.classList.add('hidden');
+  loginScreen.classList.remove('hidden');
+}
+
+async function runInitialMigration() {
+  try {
+    const result = await migrateFromFirebase();
+    if (result.status === 'ok') {
+      startWithData(result.data);
+      loadingScreen.classList.add('hidden');
+      return;
+    }
+  } catch {
+    // 自動引き継ぎに失敗したら、手動のログイン画面へ
+  }
+  showMigrationPrompt();
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginError.textContent = '';
+  try {
+    const result = await migrateFromFirebase({ email: loginEmail.value, password: loginPassword.value });
+    if (result.status === 'ok') startWithData(result.data);
+  } catch (err) {
+    loginError.textContent = '引き継ぎに失敗しました: ' + err.message;
   }
 });
+
+migrateSkipBtn.addEventListener('click', () => {
+  if (!confirm('旧データを引き継がずに空の状態で始めます。よろしいですか?')) return;
+  startWithData({});
+});
+
+async function boot() {
+  const hadData = await initStore();
+  if (hadData) {
+    startApp();
+  } else {
+    await runInitialMigration();
+  }
+}
 
 function listenData() {
   onValue(ref(db, 'groups'), (snapshot) => {
@@ -1266,3 +1322,51 @@ importFileInput.addEventListener('change', async () => {
   settingsModal.classList.add('hidden');
   alert('インポートが完了しました');
 });
+
+/* ---------- バックアップの書き出し・読み込み(このアプリ形式) ---------- */
+
+const backupExportBtn = document.getElementById('backup-export-btn');
+const backupImportBtn = document.getElementById('backup-import-btn');
+const backupImportFileInput = document.getElementById('backup-import-file-input');
+
+backupExportBtn.addEventListener('click', () => {
+  const payload = { app: 'speed-dial-sync', version: 1, exportedAt: new Date().toISOString(), ...getAllData() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `speed-dial-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+backupImportBtn.addEventListener('click', () => backupImportFileInput.click());
+
+backupImportFileInput.addEventListener('change', async () => {
+  const file = backupImportFileInput.files[0];
+  backupImportFileInput.value = '';
+  if (!file) return;
+
+  let payload;
+  try {
+    payload = JSON.parse(await file.text());
+  } catch {
+    alert('JSONファイルの読み込みに失敗しました');
+    return;
+  }
+  if (payload.app !== 'speed-dial-sync' || typeof payload.groups !== 'object' || typeof payload.links !== 'object') {
+    alert('このアプリのバックアップ形式として認識できませんでした');
+    return;
+  }
+  const groupCount = Object.keys(payload.groups).length;
+  const linkCount = Object.keys(payload.links).length;
+  if (!confirm(`現在のデータをすべて置き換え、${groupCount}グループ・${linkCount}件のリンクを読み込みます。よろしいですか?`)) return;
+
+  replaceAllData({ groups: payload.groups, links: payload.links, fences: payload.fences || {} });
+  activeGroupId = null;
+  currentPage = 0;
+  settingsModal.classList.add('hidden');
+  alert('読み込みが完了しました');
+});
+
+boot();
