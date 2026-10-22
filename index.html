@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SpeedDial">
-<link rel="stylesheet" href="shared/style.css?v=20261022a">
+<link rel="stylesheet" href="shared/style.css?v=20261022b">
 </head>
 <body>
 
@@ -19,16 +19,15 @@
     <p>Now Loading...</p>
   </div>
 
-  <div id="login-screen" class="screen hidden">
-    <form id="login-form">
-      <h1>旧データの引き継ぎ</h1>
-      <p class="field-note">以前Firebaseに保存していたリンク・グループ・枠を、このPCのブラウザ内に一度だけコピーします。引き継ぎ後はログインは不要になります。</p>
-      <input type="email" id="login-email" placeholder="メールアドレス" required>
-      <input type="password" id="login-password" placeholder="パスワード" required>
-      <button type="submit">引き継ぐ</button>
-      <button type="button" id="migrate-skip-btn">引き継がずに空で始める</button>
-      <p id="login-error" class="error"></p>
-    </form>
+  <div id="start-screen" class="screen hidden">
+    <div id="start-panel">
+      <h1>はじめに</h1>
+      <p class="field-note">以前のデータがあれば、JSONファイルを読み込んで引き継げます。Firebaseのコンソール(Realtime Database の「⋮」→「JSONをエクスポート」)で書き出したファイルや、このアプリのバックアップファイルが使えます。</p>
+      <input type="file" id="start-import-file-input" accept="application/json" class="hidden">
+      <button type="button" id="start-import-btn">JSONファイルを読み込む</button>
+      <button type="button" id="start-skip-btn">読み込まずに空で始める</button>
+      <p id="start-error" class="error"></p>
+    </div>
   </div>
 
   <div id="app-screen" class="screen hidden">
@@ -180,6 +179,6 @@
     </div>
   </div>
 
-  <script type="module" src="shared/app.js?v=20261022a"></script>
+  <script type="module" src="shared/app.js?v=20261022b"></script>
 </body>
 </html>
